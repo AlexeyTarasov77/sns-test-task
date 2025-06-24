@@ -1,8 +1,12 @@
 from datetime import timedelta
 from gateways.contracts import IJwtTokenProvider, IPasswordHasher, IUsersRepo
-from dto import SignInDTO
-from gateways.exceptions import StorageNotFoundError
-from services.exceptions import InvalidCredentialsError, NotActiveUserError
+from dto import SignInDTO, SignUpDTO
+from gateways.exceptions import StorageAlreadyExistsError, StorageNotFoundError
+from services.exceptions import (
+    InvalidCredentialsError,
+    NotActiveUserError,
+    UserAlreadyExistsError,
+)
 from models.user import User
 
 
@@ -32,3 +36,9 @@ class AuthService:
             {"uid": user.id}, self._auth_token_ttl
         )
         return user, token
+
+    async def signup(self, dto: SignUpDTO) -> User:
+        try:
+            return await self._users_repo.create(dto)
+        except StorageAlreadyExistsError:
+            raise UserAlreadyExistsError()

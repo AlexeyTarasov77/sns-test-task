@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import NamedTuple
 from faker import Faker
-from gateways.exceptions import StorageNotFoundError
+from gateways.exceptions import StorageAlreadyExistsError, StorageNotFoundError
 from models import User
 from dto import SignInDTO, SignUpDTO
 from gateways.contracts import IJwtTokenProvider, IPasswordHasher, IUsersRepo
@@ -9,7 +9,11 @@ import pytest
 from services.auth import AuthService
 from unittest.mock import Mock, create_autospec
 
-from services.exceptions import InvalidCredentialsError, NotActiveUserError
+from services.exceptions import (
+    InvalidCredentialsError,
+    NotActiveUserError,
+    UserAlreadyExistsError,
+)
 
 
 class AuthTestSuite(NamedTuple):
@@ -119,3 +123,24 @@ class TestAuthService:
         suite.mock_users_repo.get_by_username.assert_awaited_once_with(
             fake_signin_dto.username
         )
+
+    async def test_signup_success(
+        self, suite: AuthTestSuite, fake_signup_dto: SignUpDTO
+    ):
+        expected_user = User(
+            username=fake_signup_dto.username,
+            is_active=True,
+            password_hash=fake_signup_dto.password.encode(),
+        )
+        suite.mock_users_repo.create.return_value = expected_user
+        user = await suite.service.signup(fake_signup_dto)
+        suite.mock_users_repo.create.assert_awaited_once_with(fake_signup_dto)
+        assert user == expected_user
+
+    async def test_signup_already_exists(
+        self, suite: AuthTestSuite, fake_signup_dto: SignUpDTO
+    ):
+        suite.mock_users_repo.create.side_effect = StorageAlreadyExistsError()
+        with pytest.raises(UserAlreadyExistsError):
+            await suite.service.signup(fake_signup_dto)
+        suite.mock_users_repo.create.assert_awaited_once_with(fake_signup_dto)

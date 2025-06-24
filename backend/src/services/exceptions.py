@@ -11,3 +11,7 @@ class InvalidCredentialsError(ServiceError):
 
 class NotActiveUserError(ServiceError):
     msg = "user is not activated"
+
+
+class UserAlreadyExistsError(ServiceError):
+    msg = "user with provided username or phone number already exists"
