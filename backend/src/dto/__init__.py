@@ -5,4 +5,6 @@ from .base import (
     EntityIDParam as EntityIDParam,
 )
 from .users import (
+    SignInDTO as SignInDTO,
+    SignUpDTO as SignUpDTO,
 )
