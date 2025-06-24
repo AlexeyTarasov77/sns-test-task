@@ -1,0 +1,30 @@
+volumes:
+  pg_data:
+
+services:
+  app:
+    container_name: sns_app
+    build: .
+    volumes: 
+      - ./:/app
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    container_name: sns_db
+    image: postgres:17.1-alpine
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 2s
+      timeout: 3s
+      retries: 5
+    env_file:
+      - .env
+
+
