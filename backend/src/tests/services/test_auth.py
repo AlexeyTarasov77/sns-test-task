@@ -10,7 +10,7 @@ from services.auth import AuthService
 from unittest.mock import Mock, create_autospec
 
 from services.exceptions import (
-    InvalidCredentialsError,
+    InvalidAuthCredentialsError,
     NotActiveUserError,
     UserAlreadyExistsError,
 )
@@ -84,7 +84,7 @@ class TestAuthService:
         self, suite: AuthTestSuite, fake_signin_dto: SignInDTO
     ):
         suite.mock_users_repo.get_by_username.side_effect = StorageNotFoundError()
-        with pytest.raises(InvalidCredentialsError):
+        with pytest.raises(InvalidAuthCredentialsError):
             await suite.service.signin(fake_signin_dto)
         suite.mock_users_repo.get_by_username.assert_awaited_once_with(
             fake_signin_dto.username
@@ -100,7 +100,7 @@ class TestAuthService:
         )
         suite.mock_password_hasher.compare.return_value = False
         suite.mock_users_repo.get_by_username.return_value = expected_user
-        with pytest.raises(InvalidCredentialsError):
+        with pytest.raises(InvalidAuthCredentialsError):
             await suite.service.signin(fake_signin_dto)
         suite.mock_users_repo.get_by_username.assert_awaited_once_with(
             fake_signin_dto.username

@@ -5,8 +5,8 @@ class ServiceError(BaseError):
     msg: str = "server error"
 
 
-class InvalidCredentialsError(ServiceError):
-    msg = "invalid credentials"
+class InvalidAuthCredentialsError(ServiceError):
+    msg = "invalid auth credentials"
 
 
 class NotActiveUserError(ServiceError):
@@ -15,3 +15,11 @@ class NotActiveUserError(ServiceError):
 
 class UserAlreadyExistsError(ServiceError):
     msg = "user with provided username or phone number already exists"
+
+
+class InvalidTelegramAccCredentialsError(ServiceError):
+    msg = "invalid tg credentials"
+
+
+class TelegramAccAlreadyConnectedError(ServiceError):
+    msg = "you already have connected telegram to your account"

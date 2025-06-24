@@ -3,7 +3,7 @@ from gateways.contracts import IJwtTokenProvider, IPasswordHasher, IUsersRepo
 from dto import SignInDTO, SignUpDTO
 from gateways.exceptions import StorageAlreadyExistsError, StorageNotFoundError
 from services.exceptions import (
-    InvalidCredentialsError,
+    InvalidAuthCredentialsError,
     NotActiveUserError,
     UserAlreadyExistsError,
 )
@@ -27,11 +27,11 @@ class AuthService:
         try:
             user = await self._users_repo.get_by_username(dto.username)
         except StorageNotFoundError as e:
-            raise InvalidCredentialsError() from e
+            raise InvalidAuthCredentialsError() from e
         if not user.is_active:
             raise NotActiveUserError()
         if not self._password_hasher.compare(dto.password, user.password_hash):
-            raise InvalidCredentialsError()
+            raise InvalidAuthCredentialsError()
         token = self._jwt_token_provider.new_token(
             {"uid": user.id}, self._auth_token_ttl
         )

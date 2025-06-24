@@ -8,3 +8,4 @@ from .users import (
     SignInDTO as SignInDTO,
     SignUpDTO as SignUpDTO,
 )
+from .telegram import TgAccountCredentialsDTO as TgAccountCredentialsDTO
