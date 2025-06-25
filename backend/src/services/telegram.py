@@ -83,7 +83,7 @@ class TelegramService:
         except TelegramInvalidPhoneNumberError as e:
             raise TelegramAccNotExistError() from e
         try:
-            return await self._tg_accounts_repo.create(tg_acc)
+            return await self._tg_accounts_repo.save(tg_acc)
         except StorageAlreadyExistsError:
             raise TelegramAccAlreadyConnectedError()
 

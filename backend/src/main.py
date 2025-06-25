@@ -1,10 +1,13 @@
 import asyncio
+import logging
 
 from api.v1.router import v1_router
 from core.config import app_config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+
+from core.exceptions_mapper import HTTPExceptionsMapper
 
 app = FastAPI()
 app.include_router(v1_router)
@@ -19,6 +22,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+HTTPExceptionsMapper(app, logging.getLogger(__name__)).setup_handlers()
 
 
 async def main():

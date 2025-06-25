@@ -152,7 +152,7 @@ class TestTelegramService:
             api_id=fake_confirm_dto.api_id,
             api_hash=fake_confirm_dto.api_hash,
         )
-        suite.mock_tg_acc_repo.create.return_value = expected_tg_acc
+        suite.mock_tg_acc_repo.save.return_value = expected_tg_acc
 
         tg_acc = await suite.service.confirm_tg_connect(test_user_id, fake_confirm_dto)
 
@@ -162,7 +162,7 @@ class TestTelegramService:
             fake_confirm_dto.phone_code,
             fake_confirm_dto.password,
         )
-        suite.mock_tg_acc_repo.create.assert_awaited_once_with(expected_tg_acc)
+        suite.mock_tg_acc_repo.save.assert_awaited_once_with(expected_tg_acc)
         assert tg_acc == expected_tg_acc
 
     async def test_confirm_tg_connect_already_exists(
@@ -175,7 +175,7 @@ class TestTelegramService:
             api_id=fake_confirm_dto.api_id,
             api_hash=fake_confirm_dto.api_hash,
         )
-        suite.mock_tg_acc_repo.create.side_effect = StorageAlreadyExistsError()
+        suite.mock_tg_acc_repo.save.side_effect = StorageAlreadyExistsError()
 
         with pytest.raises(TelegramAccAlreadyConnectedError):
             await suite.service.confirm_tg_connect(test_user_id, fake_confirm_dto)
@@ -186,7 +186,7 @@ class TestTelegramService:
             fake_confirm_dto.phone_code,
             fake_confirm_dto.password,
         )
-        suite.mock_tg_acc_repo.create.assert_awaited_once_with(expected_tg_acc)
+        suite.mock_tg_acc_repo.save.assert_awaited_once_with(expected_tg_acc)
 
     async def test_list_chats_success(self, suite: TelegramTestSuite, faker: Faker):
         test_user_id = randint(1, 100)

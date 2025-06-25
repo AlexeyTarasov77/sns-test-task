@@ -132,15 +132,15 @@ class TestAuthService:
             is_active=True,
             password_hash=fake_signup_dto.password.encode(),
         )
-        suite.mock_users_repo.create.return_value = expected_user
+        suite.mock_users_repo.save.return_value = expected_user
         user = await suite.service.signup(fake_signup_dto)
-        suite.mock_users_repo.create.assert_awaited_once_with(fake_signup_dto)
+        suite.mock_users_repo.save.assert_awaited_once_with(fake_signup_dto)
         assert user == expected_user
 
     async def test_signup_already_exists(
         self, suite: AuthTestSuite, fake_signup_dto: SignUpDTO
     ):
-        suite.mock_users_repo.create.side_effect = StorageAlreadyExistsError()
+        suite.mock_users_repo.save.side_effect = StorageAlreadyExistsError()
         with pytest.raises(UserAlreadyExistsError):
             await suite.service.signup(fake_signup_dto)
-        suite.mock_users_repo.create.assert_awaited_once_with(fake_signup_dto)
+        suite.mock_users_repo.save.assert_awaited_once_with(fake_signup_dto)

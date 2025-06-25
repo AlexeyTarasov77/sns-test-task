@@ -2,8 +2,8 @@ from collections.abc import Mapping, Sequence
 from sqlalchemy import CursorResult, Row, delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from dto.base import PaginationDTO, PaginationResT
-from entity.base import EntityBaseModel
-from gateways.sqlalchemy import get_session
+from models.base import DatabaseBaseModel
+from gateways.sqlalchemy_gateway import get_session
 
 from gateways.exceptions import (
     GatewayError,
@@ -12,7 +12,7 @@ from gateways.exceptions import (
 )
 
 
-class SqlAlchemyRepository[T: EntityBaseModel]:
+class SqlAlchemyRepository[T: DatabaseBaseModel]:
     model: type[T]
 
     async def create(self, **values) -> T:
@@ -33,6 +33,7 @@ class SqlAlchemyRepository[T: EntityBaseModel]:
                 await session.flush()
         except IntegrityError:
             raise StorageInvalidRefError
+        return instance
 
     async def get_one(self, **filter_by) -> T:
         stmt = select(self.model).filter_by(**filter_by).limit(1)

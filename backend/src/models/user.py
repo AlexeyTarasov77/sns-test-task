@@ -12,6 +12,16 @@ class User(DatabaseBaseModel):
     tg_account: Mapped["TelegramAccount"] = relationship(back_populates="user")
     created_at: Mapped[created_at_type]
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, User)
+            and self.id == other.id
+            and self.username == other.username
+            and self.phone_number == other.phone_number
+            and self.password_hash == other.password_hash
+            and self.is_active == other.is_active
+        )
+
 
 class TelegramAccount(DatabaseBaseModel):
     id: Mapped[int_pk_type]

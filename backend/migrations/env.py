@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from entity.base import EntityBaseModel
+from models.base import DatabaseBaseModel
 from core.config import app_config
 
 # this is the Alembic Config object, which provides
@@ -23,7 +23,7 @@ config.set_main_option("sqlalchemy.url", str(app_config.pg_dsn))
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = EntityBaseModel.metadata
+target_metadata = DatabaseBaseModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
