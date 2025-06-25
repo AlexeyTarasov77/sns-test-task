@@ -29,3 +29,7 @@ class TelegramInvalidPhoneCodeError(GatewayError):
 
 class TelegramInvalidPhoneNumberError(GatewayError):
     msg = "The phone number is invalid"
+
+
+class TelegramInvalidCredentialsError(GatewayError):
+    msg = "Provided api_id or api_hash are not valid"

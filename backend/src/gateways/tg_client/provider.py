@@ -1,5 +1,6 @@
 from core.config import app_root
 from gateways.exceptions import (
+    TelegramInvalidCredentialsError,
     TelegramInvalidPhoneCodeError,
     TelegramInvalidPhoneNumberError,
     TelegramPasswordRequiredError,
@@ -11,6 +12,7 @@ from telethon.errors import (
     PhoneCodeExpiredError,
     PhoneCodeInvalidError,
     PhoneCodeEmptyError,
+    ApiIdInvalidError,
 )
 from gateways.contracts import ITelegramClient
 from dto import TgAccountCredentialsDTO
@@ -55,6 +57,8 @@ class TelethonTgProvider(ITelegramClient):
         await client.connect()
         try:
             sent_code = await client.sign_in(phone_number)
+        except ApiIdInvalidError:
+            raise TelegramInvalidCredentialsError()
         except BadRequestError:
             raise TelegramInvalidPhoneNumberError
         finally:
