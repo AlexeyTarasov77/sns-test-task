@@ -1,10 +1,10 @@
 import asyncio
+
+from api.v1.router import v1_router
+from core.config import app_config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from api.v1.router import v1_router
-
-from core.config import app_config
 
 app = FastAPI()
 app.include_router(v1_router)

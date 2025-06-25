@@ -1,3 +1,4 @@
+from pathlib import Path
 import typing as t
 from dotenv import load_dotenv
 
@@ -14,17 +15,30 @@ from pydantic_settings import (
 PORT = t.Annotated[int, Field(gt=0, le=65535)]
 
 
-class _Server(BaseModel):
+class Server(BaseModel):
+    model_config = SettingsConfigDict(env_prefix="server_")
     hostname: str = Field(default="0.0.0.0")
     port: PORT = Field(default=8000)
 
 
+class _Telegram(BaseModel):
+    """Optional telegram credentials config.
+    Credentials are used only in testing purposes"""
+
+    model_config = SettingsConfigDict(env_prefix="tg_")
+    api_id: int
+    api_hash: str
+    acc_phone: str
+
+
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(extra="allow")
-    server: _Server = Field(default=_Server())
+    model_config = SettingsConfigDict(env_nested_delimiter="__", extra="allow")
+    server: Server = Field(default=Server())
+    tg: _Telegram | None = None
     pg_dsn: PostgresDsn
 
 
 load_dotenv()
 
 app_config = Config()  # type: ignore
+app_root = Path().parent

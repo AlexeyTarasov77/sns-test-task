@@ -2,6 +2,9 @@
 run:
 	poetry run python src/main.py
 
+test:
+	poetry run pytest src/
+
 migrations/run:
 	poetry run alembic upgrade head
 

@@ -17,8 +17,18 @@ class TelegramAccount(DatabaseBaseModel):
     id: Mapped[int_pk_type]
     api_id: Mapped[int]
     api_hash: Mapped[str]
+    phone_number: Mapped[str]
     user: Mapped[User] = relationship(back_populates="tg_account")
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user.id", ondelete="CASCADE"), unique=True
     )
     created_at: Mapped[created_at_type]
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, TelegramAccount)
+            and self.user_id == other.user_id
+            and self.phone_number == other.phone_number
+            and self.api_id == other.api_id
+            and self.api_hash == other.api_hash
+        )
