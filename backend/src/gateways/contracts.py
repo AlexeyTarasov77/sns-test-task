@@ -29,11 +29,21 @@ class IJwtTokenProvider(ABC):
 
 
 class ITelegramClient(ABC):
-    def __init__(self, credentials: TgAccountCredentialsDTO):
+    def __init__(self, credentials: TgAccountCredentialsDTO, user_id: int):
         self._creds = credentials
+        self._user_id = user_id
 
     @abstractmethod
-    async def check_is_valid_creds(self) -> bool: ...
+    async def send_signin_code(self, phone_number: str) -> str: ...
+
+    @abstractmethod
+    async def confirm_signin_code(
+        self,
+        phone_number: str,
+        phone_code_hash: str,
+        code: str,
+        password: str | None = None,
+    ): ...
 
 
 class ITelegramClientFactory:
