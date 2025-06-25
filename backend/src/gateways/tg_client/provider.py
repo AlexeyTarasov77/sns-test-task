@@ -15,7 +15,7 @@ from telethon.errors import (
     ApiIdInvalidError,
 )
 from gateways.contracts import ITelegramClient
-from dto import TgAccountCredentialsDTO
+from models import TelegramAccount
 
 
 class AuthOnlyTelethonClient(TelethonTelegramClient):
@@ -33,22 +33,21 @@ class AuthOnlyTelethonClient(TelethonTelegramClient):
 class TelethonTgProvider(ITelegramClient):
     def __init__(
         self,
-        credentials: TgAccountCredentialsDTO,
-        user_id: int,
+        acc: TelegramAccount,
         sessions_dirname: str = "tg_sessions",
     ):
-        super().__init__(credentials, user_id)
+        super().__init__(acc)
         sessions_dir = app_root / sessions_dirname
         if not sessions_dir.exists():
             sessions_dir.mkdir()
-        self._session_path = sessions_dir / ("user_" + str(user_id) + ".session")
+        self._session_path = sessions_dir / ("user_" + str(acc.user_id) + ".session")
         self._client = AuthOnlyTelethonClient(
             self._session_path, self._creds.api_id, self._creds.api_hash
         )
 
     async def get_chats(self): ...
 
-    async def send_signin_code(self, phone_number: str) -> str:
+    async def send_signin_code(self) -> str:
         client = TelethonTelegramClient(
             self._session_path,
             self._creds.api_id,
@@ -56,7 +55,7 @@ class TelethonTgProvider(ITelegramClient):
         )
         await client.connect()
         try:
-            sent_code = await client.sign_in(phone_number)
+            sent_code = await client.sign_in(self._phone_number)
         except ApiIdInvalidError:
             raise TelegramInvalidCredentialsError()
         except BadRequestError:
@@ -67,9 +66,8 @@ class TelethonTgProvider(ITelegramClient):
 
     async def confirm_signin_code(
         self,
-        phone_number: str,
         phone_code_hash: str,
-        code: str,
+        phone_code: str,
         password: str | None = None,
     ):
         client = TelethonTelegramClient(
@@ -80,7 +78,10 @@ class TelethonTgProvider(ITelegramClient):
         await client.connect()
         try:
             await client.sign_in(
-                phone_number, code, password=password, phone_code_hash=phone_code_hash
+                self._phone_number,
+                phone_code,
+                password=password,
+                phone_code_hash=phone_code_hash,
             )
         except SessionPasswordNeededError:
             raise TelegramPasswordRequiredError()
