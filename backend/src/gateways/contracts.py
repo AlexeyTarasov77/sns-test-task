@@ -27,6 +27,9 @@ class IPasswordHasher(ABC):
     @abstractmethod
     def compare(self, plain: str, hash: bytes) -> bool: ...
 
+    @abstractmethod
+    def hash(self, plain: str) -> bytes: ...
+
 
 class IJwtTokenProvider(ABC):
     @abstractmethod

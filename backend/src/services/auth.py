@@ -38,7 +38,13 @@ class AuthService:
         return user, token
 
     async def signup(self, dto: SignUpDTO) -> User:
+        password_hash = self._password_hasher.hash(dto.password)
+        user = User(
+            username=dto.username,
+            phone_number=dto.phone_number,
+            password_hash=password_hash,
+        )
         try:
-            return await self._users_repo.save(dto)
+            return await self._users_repo.save(user)
         except StorageAlreadyExistsError:
             raise UserAlreadyExistsError()
