@@ -16,5 +16,6 @@ class TgConnectRequestDTO(TgAccountCredentialsDTO):
 
 
 class TgConnectConfirmDTO(TgConnectRequestDTO):
+    password: str | None = None
     phone_code_hash: str
     phone_code: str

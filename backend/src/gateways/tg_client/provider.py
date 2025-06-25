@@ -88,6 +88,8 @@ class TelethonTgProvider(ITelegramClient):
         # for some reason PhoneCodeEmptyError is raised too, althoud code is not empty
         except (PhoneCodeInvalidError, PhoneCodeExpiredError, PhoneCodeEmptyError):
             raise TelegramInvalidPhoneCodeError()
+        except ApiIdInvalidError:
+            raise TelegramInvalidCredentialsError()
         except BadRequestError:
             raise TelegramInvalidPhoneNumberError
         finally:

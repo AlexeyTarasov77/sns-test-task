@@ -3,11 +3,15 @@ from gateways.contracts import ITelegramAccountsRepo, ITelegramClientFactory, IU
 from gateways.exceptions import (
     StorageAlreadyExistsError,
     TelegramInvalidCredentialsError,
+    TelegramInvalidPhoneCodeError,
     TelegramInvalidPhoneNumberError,
+    TelegramPasswordRequiredError,
 )
 from models import TelegramAccount
 from services.exceptions import (
+    InvalidConfirmationCodeError,
     InvalidTelegramAccCredentialsError,
+    TelegramAcc2FARequired,
     TelegramAccAlreadyConnectedError,
     TelegramAccNotExistError,
 )
@@ -46,9 +50,32 @@ class TelegramService:
             phone_number=phone_number, phone_code_hash=phone_code_hash
         )
 
-    async def confirm_tg_connect(self, user_id: int, dto: TgConnectConfirmDTO):
-        ...
-        # try:
-        #     return await self._tg_accounts_repo.create(tg_acc)
-        # except StorageAlreadyExistsError:
-        #     raise TelegramAccAlreadyConnectedError()
+    async def confirm_tg_connect(
+        self, user_id: int, dto: TgConnectConfirmDTO
+    ) -> TelegramAccount:
+        tg_acc = TelegramAccount(
+            user_id=user_id,
+            api_id=dto.api_id,
+            api_hash=dto.api_hash,
+            phone_number=dto.phone_number,
+        )
+
+        tg_client = self._tg_client_factory.new_client(tg_acc)
+        try:
+            await tg_client.confirm_signin_code(
+                dto.phone_code_hash,
+                dto.phone_code,
+                dto.password,
+            )
+        except TelegramPasswordRequiredError as e:
+            raise TelegramAcc2FARequired from e
+        except TelegramInvalidPhoneCodeError as e:
+            raise InvalidConfirmationCodeError from e
+        except TelegramInvalidCredentialsError as e:
+            raise InvalidTelegramAccCredentialsError() from e
+        except TelegramInvalidPhoneNumberError as e:
+            raise TelegramAccNotExistError() from e
+        try:
+            return await self._tg_accounts_repo.create(tg_acc)
+        except StorageAlreadyExistsError:
+            raise TelegramAccAlreadyConnectedError()

@@ -21,9 +21,17 @@ class InvalidTelegramAccCredentialsError(ServiceError):
     msg = "invalid tg credentials"
 
 
+class InvalidConfirmationCodeError(ServiceError):
+    msg = "Provided confirmation code is invalid or expired"
+
+
 class TelegramAccNotExistError(ServiceError):
     msg = "telegram account with provided phone number does not exist"
 
 
 class TelegramAccAlreadyConnectedError(ServiceError):
     msg = "you already have connected telegram to your account"
+
+
+class TelegramAcc2FARequired(ServiceError):
+    msg = "You have two factor authentication turned on, so you should supply additional password to sign in"
