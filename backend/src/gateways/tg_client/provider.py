@@ -14,6 +14,7 @@ from telethon.errors import (
     PhoneCodeEmptyError,
     ApiIdInvalidError,
 )
+from dto import TelegramChatDTO
 from gateways.contracts import ITelegramClient
 from models import TelegramAccount
 
@@ -28,6 +29,11 @@ class AuthOnlyTelethonClient(TelethonTelegramClient):
         me = await self.get_me()
         if me is None:
             raise ValueError("Authentication failed. Unable to use client")
+        return self
+
+    async def __aexit__(self, *args):
+        print("\n\nEXITING\n\n", args)
+        await self.disconnect()
 
 
 class TelethonTgProvider(ITelegramClient):
@@ -45,7 +51,14 @@ class TelethonTgProvider(ITelegramClient):
             self._session_path, self._creds.api_id, self._creds.api_hash
         )
 
-    async def get_chats(self): ...
+    async def get_all_chats(self) -> list[TelegramChatDTO]:
+        async with self._client as client:
+            print("AEXIT METHOD", client.__aexit__)
+            res = [
+                TelegramChatDTO.model_validate(chat)
+                async for chat in client.iter_dialogs()
+            ]
+        return res
 
     async def send_signin_code(self) -> str:
         client = TelethonTelegramClient(

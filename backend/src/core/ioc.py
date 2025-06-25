@@ -3,6 +3,9 @@ import typing as t
 from fastapi import Depends
 import punq
 
+from services.auth import AuthService
+from services.telegram import TelegramService
+
 
 @lru_cache(1)
 def get_container() -> punq.Container:
@@ -11,6 +14,8 @@ def get_container() -> punq.Container:
 
 def init_container() -> punq.Container:
     container = punq.Container()
+    container.register(AuthService)
+    container.register(TelegramService)
 
     return container
 

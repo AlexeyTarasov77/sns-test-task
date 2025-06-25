@@ -66,3 +66,9 @@ class TestTelethonTgProvider:
                 str(randint(10000, 99999)),
                 faker.password(),
             )
+
+    async def test_get_all_chats_unauthenticated(self):
+        assert app_config.tg is not None
+        telethon_provider = create_telethon_provider(app_config.tg.acc_phone)
+        with pytest.raises(ValueError):
+            await telethon_provider.get_all_chats()
