@@ -1,7 +1,13 @@
-from dto import TgConnectConfirmDTO, TgConnectRequestDTO, TgConnectRequestResultDTO
+from dto import (
+    TgConnectConfirmDTO,
+    TgConnectRequestDTO,
+    TgConnectRequestResultDTO,
+    TelegramChatDTO,
+)
 from gateways.contracts import ITelegramAccountsRepo, ITelegramClientFactory, IUsersRepo
 from gateways.exceptions import (
     StorageAlreadyExistsError,
+    StorageNotFoundError,
     TelegramInvalidCredentialsError,
     TelegramInvalidPhoneCodeError,
     TelegramInvalidPhoneNumberError,
@@ -13,6 +19,7 @@ from services.exceptions import (
     InvalidTelegramAccCredentialsError,
     TelegramAcc2FARequired,
     TelegramAccAlreadyConnectedError,
+    TelegramAccNotConnectedError,
     TelegramAccNotExistError,
 )
 
@@ -79,3 +86,11 @@ class TelegramService:
             return await self._tg_accounts_repo.create(tg_acc)
         except StorageAlreadyExistsError:
             raise TelegramAccAlreadyConnectedError()
+
+    async def list_chats(self, user_id: int) -> list[TelegramChatDTO]:
+        try:
+            tg_acc = await self._tg_accounts_repo.get_by_user_id(user_id)
+        except StorageNotFoundError:
+            raise TelegramAccNotConnectedError()
+        tg_client = self._tg_client_factory.new_client(tg_acc)
+        return await tg_client.get_all_chats()

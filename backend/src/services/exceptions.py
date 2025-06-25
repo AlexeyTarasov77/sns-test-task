@@ -29,6 +29,10 @@ class TelegramAccNotExistError(ServiceError):
     msg = "telegram account with provided phone number does not exist"
 
 
+class TelegramAccNotConnectedError(ServiceError):
+    msg = "you don't have connected telegram account"
+
+
 class TelegramAccAlreadyConnectedError(ServiceError):
     msg = "you already have connected telegram to your account"
 

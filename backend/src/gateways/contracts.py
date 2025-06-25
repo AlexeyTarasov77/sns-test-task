@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dto import SignUpDTO, TgAccountCredentialsDTO
+from dto import SignUpDTO, TgAccountCredentialsDTO, TelegramChatDTO
 from models import User
 from datetime import timedelta
 
@@ -18,6 +18,9 @@ class IUsersRepo(ABC):
 class ITelegramAccountsRepo(ABC):
     @abstractmethod
     async def create(self, acc: TelegramAccount) -> TelegramAccount: ...
+
+    @abstractmethod
+    async def get_by_user_id(self, user_id: int) -> TelegramAccount: ...
 
 
 class IPasswordHasher(ABC):
@@ -46,6 +49,9 @@ class ITelegramClient(ABC):
         phone_code: str,
         password: str | None = None,
     ): ...
+
+    @abstractmethod
+    async def get_all_chats(self) -> list[TelegramChatDTO]: ...
 
 
 class ITelegramClientFactory:

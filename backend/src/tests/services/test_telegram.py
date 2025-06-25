@@ -1,5 +1,5 @@
 from faker import Faker
-from dto import TgConnectRequestDTO, TgConnectConfirmDTO
+from dto import TgConnectRequestDTO, TgConnectConfirmDTO, TelegramChatDTO
 from uuid import uuid4
 from gateways.contracts import (
     ITelegramAccountsRepo,
@@ -10,6 +10,7 @@ from gateways.contracts import (
 from random import randint
 from gateways.exceptions import (
     StorageAlreadyExistsError,
+    StorageNotFoundError,
     TelegramInvalidCredentialsError,
     TelegramInvalidPhoneNumberError,
 )
@@ -21,6 +22,7 @@ from unittest.mock import Mock, create_autospec
 from services.exceptions import (
     InvalidTelegramAccCredentialsError,
     TelegramAccAlreadyConnectedError,
+    TelegramAccNotConnectedError,
     TelegramAccNotExistError,
 )
 from services.telegram import TelegramService
@@ -185,3 +187,27 @@ class TestTelegramService:
             fake_confirm_dto.password,
         )
         suite.mock_tg_acc_repo.create.assert_awaited_once_with(expected_tg_acc)
+
+    async def test_list_chats_success(self, suite: TelegramTestSuite, faker: Faker):
+        test_user_id = randint(1, 100)
+        expected_chats = [
+            TelegramChatDTO(
+                id=randint(1, 100), title=faker.user_name(), photo_url=faker.image_url()
+            )
+            for _ in range(5)
+        ]
+        expected_tg_acc = TelegramAccount(user_id=test_user_id)
+        suite.mock_tg_acc_repo.get_by_user_id.return_value = expected_tg_acc
+        suite.mock_tg_client.get_all_chats.return_value = expected_chats
+        chats = await suite.service.list_chats(test_user_id)
+        assert chats == expected_chats
+        suite.mock_tg_acc_repo.get_by_user_id.assert_awaited_once_with(test_user_id)
+        suite.mock_tg_factory.new_client.assert_called_with(expected_tg_acc)
+        suite.mock_tg_client.get_all_chats.assert_awaited_once()
+
+    async def test_list_chats_no_tg_connected(self, suite: TelegramTestSuite):
+        test_user_id = randint(1, 100)
+        suite.mock_tg_acc_repo.get_by_user_id.side_effect = StorageNotFoundError()
+        with pytest.raises(TelegramAccNotConnectedError):
+            await suite.service.list_chats(test_user_id)
+        suite.mock_tg_acc_repo.get_by_user_id.assert_awaited_once_with(test_user_id)

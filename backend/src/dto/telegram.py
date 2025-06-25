@@ -19,3 +19,9 @@ class TgConnectConfirmDTO(TgConnectRequestDTO):
     password: str | None = None
     phone_code_hash: str
     phone_code: str
+
+
+class TelegramChatDTO(BaseDTO):
+    id: int
+    title: str
+    photo_url: str
