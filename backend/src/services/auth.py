@@ -24,7 +24,7 @@ class AuthService:
         self._users_repo = users_repo
         self._password_hasher = password_hasher
         self._jwt_token_provider = jwt_token_provider
-        self._auth_token_ttl = auth_token_ttl
+        self.auth_token_ttl = auth_token_ttl
         self.token_uid_key = "uid"
 
     async def signin(self, dto: SignInDTO) -> SignInResultDTO:
@@ -37,7 +37,7 @@ class AuthService:
         if not self._password_hasher.compare(dto.password, user.password_hash):
             raise InvalidAuthCredentialsError()
         token = self._jwt_token_provider.new_token(
-            {self.token_uid_key: user.id}, self._auth_token_ttl
+            {self.token_uid_key: user.id}, self.auth_token_ttl
         )
         return SignInResultDTO.model_validate({"user": user, "token": token})
 
@@ -62,3 +62,9 @@ class AuthService:
         if token_exp < datetime.now():
             raise InvalidAuthTokenError()
         return token_payload
+
+    async def get_current_user(self, user_id: int) -> User:
+        try:
+            return await self._users_repo.get_by_id(user_id)
+        except StorageNotFoundError as e:
+            raise InvalidAuthCredentialsError() from e

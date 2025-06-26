@@ -32,3 +32,10 @@ class TelegramChatDTO(BaseChatDTO):
 
 
 class TelegramChatInfoDTO(BaseChatDTO): ...
+
+
+class TelegramAccountInfoDTO(BaseDTO):
+    first_name: str | None = None
+    last_name: str | None = None
+    username: str
+    photo_url: str | None = None

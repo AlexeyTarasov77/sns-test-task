@@ -107,3 +107,11 @@ class TelegramService:
             return await tg_client.get_chat_by_id(chat_id)
         except StorageNotFoundError:
             raise ChatNotFoundError()
+
+    async def get_account_info(self, acc_id: int):
+        try:
+            tg_acc = await self._tg_accounts_repo.get_by_id(acc_id)
+        except StorageNotFoundError:
+            raise TelegramAccNotConnectedError()
+        tg_client = self._tg_client_factory.new_client(tg_acc)
+        return await tg_client.get_me()

@@ -2,6 +2,7 @@ from faker import Faker
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import update
+from api.v1.auth import AUTH_TOKEN_KEY
 from gateways.sqlalchemy_gateway import get_session
 from integration_tests.conftest import shuffle_case
 from models import User
@@ -20,6 +21,7 @@ async def test_signin_success(
         ).model_dump(mode="json"),
     )
     assert resp.status_code == 200
+    assert resp.cookies.get(AUTH_TOKEN_KEY) is not None
     resp_data = resp.json()
     assert resp_data["id"] == expected_user.id
 

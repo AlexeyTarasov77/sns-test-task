@@ -1,4 +1,6 @@
-from core.config import app_root
+from time import time
+from telethon.tl.types import User
+from core.config import app_root, app_config
 from gateways.exceptions import (
     TelegramInvalidCredentialsError,
     TelegramInvalidPhoneCodeError,
@@ -14,12 +16,13 @@ from telethon.errors import (
     PhoneCodeEmptyError,
     ApiIdInvalidError,
 )
-from dto import TelegramChatDTO, TelegramChatInfoDTO
+from dto import TelegramChatDTO, TelegramChatInfoDTO, TelegramAccountInfoDTO
 from gateways.contracts import ITelegramClient
 from models import TelegramAccount
 
 
 class AuthOnlyTelethonClient(TelethonTelegramClient):
+    user: User
     """Overrides __aenter__ original method to avoid interactive login behaviour"""
 
     async def __aenter__(self):
@@ -29,6 +32,7 @@ class AuthOnlyTelethonClient(TelethonTelegramClient):
         me = await self.get_me()
         if me is None:
             raise ValueError("Authentication failed. Unable to use client")
+        self.user = me  # type: ignore
         return self
 
     async def __aexit__(self, *args):
@@ -110,3 +114,19 @@ class TelethonTgProvider(ITelegramClient):
             raise TelegramInvalidPhoneNumberError
         finally:
             await client.disconnect()  # type: ignore
+
+    async def get_me(self) -> TelegramAccountInfoDTO:
+        async with self._client as client:
+            photo_url = None
+            if client.user.photo:
+                filename = f"user_{self._user_id}_avatar.jpg"
+                photo_path = app_root / app_config.media_path / filename
+                if not photo_path.exists():
+                    await client.download_profile_photo(
+                        client.user,
+                        photo_path.absolute().as_posix(),
+                    )
+                photo_url = app_config.media_serve_url + "/" + filename
+            return TelegramAccountInfoDTO.model_validate(
+                {**client.user.to_dict(), "photo_url": photo_url}
+            )

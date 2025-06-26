@@ -39,6 +39,11 @@ class Config(BaseSettings):
     pg_dsn: PostgresDsn
     auth_token_ttl: timedelta = Field(default=timedelta(minutes=30))
     jwt_secret: str
+    media_path: str = "media"
+
+    @property
+    def media_serve_url(self) -> str:
+        return f"http://{self.server.hostname}:{self.server.port}/{self.media_path}"
 
 
 load_dotenv()

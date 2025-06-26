@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 
 from core.ioc import Inject
@@ -12,12 +12,17 @@ credentials_exception = HTTPException(
     detail="Unauthorized",
     headers={"WWW-Authenticate": "Bearer"},
 )
+AUTH_TOKEN_KEY = "sns_auth_token"
 
 
 async def get_user_id_or_raise(
-    token: Annotated[str | None, Depends(oauth2_scheme)],
+    bearer_token: Annotated[str | None, Depends(oauth2_scheme)],
     auth_service: Annotated[AuthService, Inject(AuthService)],
+    req: Request,
 ):
+    cookie_token = req.cookies[AUTH_TOKEN_KEY]
+    token = bearer_token or cookie_token
+    print("AUTH TOKEN", token)
     if not token:
         raise credentials_exception from None
     payload = await auth_service.verfiy_token(token)

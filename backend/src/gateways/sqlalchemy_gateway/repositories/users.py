@@ -1,4 +1,5 @@
 from sqlalchemy import func, select
+from sqlalchemy.orm import joinedload
 from gateways.contracts import IUsersRepo
 from gateways.exceptions import StorageNotFoundError
 from models import User
@@ -21,4 +22,14 @@ class UsersRepo(SqlAlchemyRepository, IUsersRepo):
         return user
 
     async def get_by_id(self, user_id: int) -> User:
-        return await super().get_one(id=user_id)
+        stmt = (
+            select(self.model)
+            .filter_by(id=user_id)
+            .options(joinedload(User.tg_account))
+        )
+        async with get_session() as session:
+            res = await session.execute(stmt)
+        obj = res.scalar_one_or_none()
+        if not obj:
+            raise StorageNotFoundError()
+        return obj

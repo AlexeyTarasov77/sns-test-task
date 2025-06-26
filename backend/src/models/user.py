@@ -9,7 +9,7 @@ class User(DatabaseBaseModel):
     phone_number: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[bytes]
     is_active: Mapped[bool] = mapped_column(default=True)
-    tg_account: Mapped["TelegramAccount"] = relationship(back_populates="user")
+    tg_account: Mapped["TelegramAccount | None"] = relationship(back_populates="user")
     created_at: Mapped[created_at_type]
 
     def __eq__(self, other):

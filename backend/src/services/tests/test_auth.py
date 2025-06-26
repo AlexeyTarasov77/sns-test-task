@@ -75,7 +75,7 @@ class TestAuthService:
             fake_signin_dto.username
         )
         suite.mock_jwt_provider.new_token.assert_called_once_with(
-            {"uid": expected_user.id}, suite.service._auth_token_ttl
+            {"uid": expected_user.id}, suite.service.auth_token_ttl
         )
         suite.mock_password_hasher.compare.assert_called_once_with(
             fake_signin_dto.password, expected_user.password_hash

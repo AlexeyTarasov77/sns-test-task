@@ -9,6 +9,8 @@ from .users import (
     SignUpDTO as SignUpDTO,
     SignInResultDTO as SignInResultDTO,
     UserDTO as UserDTO,
+    UserExtendedDTO as UserExtendedDTO,
+    UserTelegramAccDTO as UserTelegramAccDTO,
 )
 from .telegram import (
     TgAccountCredentialsDTO as TgAccountCredentialsDTO,
@@ -17,4 +19,5 @@ from .telegram import (
     TgConnectRequestResultDTO as TgConnectRequestResultDTO,
     TelegramChatDTO as TelegramChatDTO,
     TelegramChatInfoDTO as TelegramChatInfoDTO,
+    TelegramAccountInfoDTO as TelegramAccountInfoDTO,
 )

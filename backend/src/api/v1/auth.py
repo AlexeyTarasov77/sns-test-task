@@ -1,23 +1,53 @@
 from typing import Annotated
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Depends, Response
+from api.v1.utils import AUTH_TOKEN_KEY, get_user_id_or_raise
 from core.ioc import Inject
 from services.auth import AuthService
-from dto import SignInDTO, SignUpDTO, UserDTO
+from dto import SignInDTO, SignUpDTO, UserDTO, UserExtendedDTO, UserTelegramAccDTO
+from services.telegram import TelegramService
 
 router = APIRouter(prefix="/auth")
 
 AuthServiceDep = Annotated[AuthService, Inject(AuthService)]
-
-AUTH_TOKEN_KEY = "auth_token"
+TelegramServiceDep = Annotated[TelegramService, Inject(TelegramService)]
 
 
 @router.post("/signin")
 async def signin(dto: SignInDTO, service: AuthServiceDep, resp: Response) -> UserDTO:
     res = await service.signin(dto)
-    resp.set_cookie(AUTH_TOKEN_KEY, res.token)
+    resp.set_cookie(
+        AUTH_TOKEN_KEY,
+        res.token,
+        int(service.auth_token_ttl.total_seconds()),
+        httponly=True,
+        secure=True,
+        samesite="none",
+    )
     return res.user
 
 
 @router.post("/signup")
 async def signup(dto: SignUpDTO, service: AuthServiceDep):
     return await service.signup(dto)
+
+
+@router.get("/me")
+async def get_me(
+    user_id: Annotated[int, Depends(get_user_id_or_raise)],
+    auth_service: AuthServiceDep,
+    tg_service: TelegramServiceDep,
+) -> UserExtendedDTO:
+    user = await auth_service.get_current_user(user_id)
+    user_tg_acc_dto = None
+    if user.tg_account:
+        tg_acc_info = await tg_service.get_account_info(user.tg_account.id)
+        user_tg_acc_dto = UserTelegramAccDTO(
+            info=tg_acc_info,
+            id=user.tg_account.id,
+            phone_number=user.tg_account.phone_number,
+            created_at=user.tg_account.created_at,
+            api_id=user.tg_account.api_id,
+        )
+    return UserExtendedDTO(
+        **UserDTO.model_validate(user).model_dump(), tg=user_tg_acc_dto
+    )
