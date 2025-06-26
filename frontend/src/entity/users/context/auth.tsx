@@ -15,8 +15,8 @@ import { getErrorMessage } from "@/shared/utils/errors";
 
 interface IAuthCtx {
   isLoading: boolean;
-  login: (data: ILoginForm) => Promise<string | void>;
-  register: (data: IRegisterForm) => Promise<string | void>;
+  signIn: (data: ILoginForm) => Promise<string | void>;
+  signUp: (data: IRegisterForm) => Promise<string | void>;
   logout: () => void;
   isAuthenticated: boolean
 }
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
 
-  const login = async (data: ILoginForm) => {
+  const signIn = async (data: ILoginForm) => {
     try {
       setIsLoading(true);
       await authService.login(data);
@@ -61,10 +61,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   };
 
-  const register = async (data: IRegisterForm) => {
+  const signUp = async (data: IRegisterForm) => {
     try {
       setIsLoading(true);
-      return await authService.register(data);
+      await authService.register(data);
     } catch (err) {
       return getErrorMessage(err);
     } finally {
@@ -87,8 +87,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   return (
     <AuthCtx.Provider
       value={{
-        login,
-        register,
+        signIn,
+        signUp,
         isLoading,
         logout,
         isAuthenticated,

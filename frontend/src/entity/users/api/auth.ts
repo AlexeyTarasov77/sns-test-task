@@ -12,6 +12,12 @@ export const authService = {
     }
     return resp.data
   },
-  register: async (data: IRegisterForm) => { },
+  register: async (data: IRegisterForm) => {
+    const resp = await POST<IUser>("/auth/signup", data)
+    if (!resp.ok) {
+      throw new Error(resp.detail)
+    }
+    return resp.data
+  },
   logout: async () => { }
 }

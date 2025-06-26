@@ -5,14 +5,15 @@ import { UIButton } from "@/shared/ui/button";
 import { UIInput } from "@/shared/ui/forms";
 import { Loader } from "@/shared/ui/loader";
 import { renderError } from "@/shared/utils/errors";
+import { validationHelpers } from "@/shared/utils/validation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 
 export function SignInPage() {
   const { control, register, setError, handleSubmit, formState: { errors } } = useForm<ILoginForm>()
-  const { login, isLoading } = useAuthCtx()
+  const { signIn, isLoading } = useAuthCtx()
   const onSubmit = async (data: ILoginForm) => {
-    const errMsg = await login(data)
+    const errMsg = await signIn(data)
     errMsg && setError("root", { message: errMsg })
   }
   if (isLoading) return <Loader />
@@ -21,10 +22,10 @@ export function SignInPage() {
       <div className="flex flex-col items-center py-5 max-w-[960px] flex-1 gap-4">
         <h2 className="text-[#111418] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">Welcome to Social Network Services</h2>
         <div className="min-w-1/2">
-          <UIInput.Text label="Username" control={control} {...register("username")} />
+          <UIInput.Text rules={validationHelpers.required()} label="Username" control={control} {...register("username")} />
         </div>
         <div className="min-w-1/2">
-          <UIInput.Text label="Password" type="password" control={control} {...register("password")} />
+          <UIInput.Text rules={{ ...validationHelpers.required(), ...validationHelpers.minLength(8) }} label="Password" type="password" control={control} {...register("password")} />
         </div>
         {renderError(errors.root)}
         <UIButton className="min-w-1/4" onClick={handleSubmit(onSubmit)}>Login</UIButton>
