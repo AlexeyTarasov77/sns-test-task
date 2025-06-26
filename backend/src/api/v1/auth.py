@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, Response
-from api.v1.utils import AUTH_TOKEN_KEY, get_user_id_or_raise
+from api.v1.utils import AUTH_TOKEN_KEY, get_user_id_or_none, get_user_id_or_raise
 from core.ioc import Inject
 from services.auth import AuthService
 from dto import SignInDTO, SignUpDTO, UserDTO, UserExtendedDTO, UserTelegramAccDTO
@@ -51,3 +51,10 @@ async def get_me(
     return UserExtendedDTO(
         **UserDTO.model_validate(user).model_dump(), tg=user_tg_acc_dto
     )
+
+
+@router.get("/is-authenticated")
+async def check_is_authenticated(
+    user_id: Annotated[int | None, Depends(get_user_id_or_none)],
+):
+    return {"is_authenticated": user_id is not None}

@@ -22,8 +22,18 @@ async def get_user_id_or_raise(
 ):
     cookie_token = req.cookies[AUTH_TOKEN_KEY]
     token = bearer_token or cookie_token
-    print("AUTH TOKEN", token)
     if not token:
         raise credentials_exception from None
     payload = await auth_service.verfiy_token(token)
     return payload[auth_service.token_uid_key]
+
+
+async def get_user_id_or_none(
+    bearer_token: Annotated[str | None, Depends(oauth2_scheme)],
+    auth_service: Annotated[AuthService, Inject(AuthService)],
+    req: Request,
+):
+    try:
+        return get_user_id_or_none(bearer_token, auth_service, req)
+    except HTTPException:
+        return None
