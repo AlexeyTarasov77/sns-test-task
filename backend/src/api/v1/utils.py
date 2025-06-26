@@ -20,7 +20,7 @@ async def get_user_id_or_raise(
     auth_service: Annotated[AuthService, Inject(AuthService)],
     req: Request,
 ):
-    cookie_token = req.cookies[AUTH_TOKEN_KEY]
+    cookie_token = req.cookies.get(AUTH_TOKEN_KEY)
     token = bearer_token or cookie_token
     if not token:
         raise credentials_exception from None
@@ -34,6 +34,6 @@ async def get_user_id_or_none(
     req: Request,
 ):
     try:
-        return get_user_id_or_none(bearer_token, auth_service, req)
+        return await get_user_id_or_raise(bearer_token, auth_service, req)
     except HTTPException:
         return None

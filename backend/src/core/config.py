@@ -37,7 +37,7 @@ class Config(BaseSettings):
     server: Server = Field(default=Server())
     tg: _Telegram | None = None
     pg_dsn: PostgresDsn
-    auth_token_ttl: timedelta = Field(default=timedelta(minutes=30))
+    auth_token_ttl: timedelta = Field(default=timedelta(days=30))
     jwt_secret: str
     media_path: str = "media"
 
