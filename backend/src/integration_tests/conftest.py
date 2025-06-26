@@ -1,9 +1,12 @@
+from datetime import timedelta
 from time import time
 from core.config import app_config
 from httpx import AsyncClient
 import pytest_asyncio
 import pytest
 from faker import Faker
+from core.ioc import Resolve
+from gateways.contracts import IJwtTokenProvider
 from gateways.security.hashing import BcryptHasher
 from sqlalchemy import delete
 from gateways.sqlalchemy_gateway import get_session
@@ -17,6 +20,16 @@ API_BASE_URL = f"http://localhost:{app_config.server.port}/api/v1"
 async def client():
     async with AsyncClient(base_url=API_BASE_URL) as client:
         yield client
+
+
+@pytest_asyncio.fixture
+async def auth_client_with_user(test_user_with_password: tuple[User, str]):
+    user, _ = test_user_with_password
+    token = Resolve(IJwtTokenProvider).new_token({"uid": user.id}, timedelta(days=1))
+    async with AsyncClient(
+        base_url=API_BASE_URL, headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        yield client, user
 
 
 @pytest.fixture(scope="session", autouse=True)

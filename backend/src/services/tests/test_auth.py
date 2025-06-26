@@ -42,7 +42,7 @@ def suite() -> AuthTestSuite:
 
 @pytest.fixture
 def fake_signin_dto(faker: Faker) -> SignInDTO:
-    return SignInDTO(username=faker.user_name(), password=fake.password())
+    return SignInDTO(username=faker.user_name(), password=faker.password())
 
 
 @pytest.fixture
