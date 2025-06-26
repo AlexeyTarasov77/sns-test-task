@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 from dto import TgAccountCredentialsDTO, TelegramChatDTO, TelegramChatInfoDTO
 from models import User, TelegramAccount
 from datetime import timedelta
@@ -32,6 +33,9 @@ class IPasswordHasher(ABC):
 class IJwtTokenProvider(ABC):
     @abstractmethod
     def new_token(self, payload: dict, ttl: timedelta) -> str: ...
+
+    @abstractmethod
+    def extract_payload(self, token: str) -> dict[str, Any]: ...
 
 
 class ITelegramClient(ABC):
