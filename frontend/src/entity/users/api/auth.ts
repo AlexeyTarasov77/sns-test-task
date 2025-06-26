@@ -1,9 +1,13 @@
-import { POST } from "@/shared/api/client"
+import { GET, POST } from "@/shared/api/client"
 import { ILoginForm, IRegisterForm, IUser } from "../types"
 
 export const authService = {
   checkAuthenticated: async () => {
-    return false
+    const resp = await GET<{ is_authenticated: boolean }>("/auth/is-authenticated")
+    if (!resp.ok) {
+      throw new Error(resp.detail)
+    }
+    return resp.data.is_authenticated
   },
   login: async (data: ILoginForm) => {
     const resp = await POST<IUser>("/auth/signin", data)

@@ -30,9 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UIHeader />
         <UsersProvider>
           <AuthProvider>
+            <UIHeader />
             {children}
           </AuthProvider>
         </UsersProvider>

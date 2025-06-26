@@ -12,6 +12,11 @@ export async function sendReq<T>(
   if (path instanceof URL) {
     url = path.toString();
   }
+  if (options) {
+    options.credentials = 'include'
+  } else {
+    options = { credentials: 'include' }
+  }
   const resp = await fetch(url, options);
   const data = await resp.json();
   if (!resp.ok) {

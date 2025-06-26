@@ -1,3 +1,8 @@
+"use client"
+import { useRouter } from "next/navigation"
+import { Avatar } from "../shared/avatar"
+import { useUserCtx } from "@/entity/users/context/user"
+
 function HeaderIcon() {
   return (
     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -21,6 +26,8 @@ function HeaderIcon() {
 }
 
 export function UIHeader() {
+  const router = useRouter()
+  const { user } = useUserCtx()
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3">
       <div className="flex items-center gap-4 text-[#111418]">
@@ -29,6 +36,7 @@ export function UIHeader() {
         </div>
         <h2 className="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">Social Network Notifications</h2>
       </div>
+      <button onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url} /></button>
     </header>
   )
 }
