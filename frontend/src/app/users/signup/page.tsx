@@ -1,5 +1,5 @@
 import { SignUpPage } from "@/pages/auth";
 
-export default function Route() {
+export default function SignUpRoute() {
   return <SignUpPage />
 }

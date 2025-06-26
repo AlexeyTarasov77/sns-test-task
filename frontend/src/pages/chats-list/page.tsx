@@ -1,6 +1,8 @@
 
 export function ChatsListPage() {
   return (
-    <div></div>
+    <div>
+      <h1>Chats list</h1>
+    </div>
   )
 }
