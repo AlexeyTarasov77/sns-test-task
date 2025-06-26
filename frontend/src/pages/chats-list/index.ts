@@ -1,0 +1,2 @@
+export { ChatsListPage } from "./page";
+

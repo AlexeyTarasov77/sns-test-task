@@ -1,2 +1,6 @@
 
-export function ChatsListPage() { }
+export function ChatsListPage() {
+  return (
+    <div></div>
+  )
+}
