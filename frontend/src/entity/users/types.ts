@@ -24,9 +24,12 @@ export interface ITelegramAccount {
   api_id: number
   phone_number: string
   created_at: string
+}
+
+export interface ITelegramAccountWithInfo extends ITelegramAccount {
   info: ITelegramAccountInfo
 }
 
 export interface IUserExtended extends IUser {
-  tg: ITelegramAccount
+  tg: ITelegramAccountWithInfo
 }

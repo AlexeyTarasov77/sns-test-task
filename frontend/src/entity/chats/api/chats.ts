@@ -1,5 +1,5 @@
-import { GET } from "@/shared/api/client"
-import { IChat } from "../types"
+import { GET, POST } from "@/shared/api/client"
+import { IChat, ITelegramConnectInfo } from "../types"
 
 export const chatsService = {
   listTgChats: async () => {
@@ -8,5 +8,5 @@ export const chatsService = {
       throw new Error(resp.detail)
     }
     return resp.data
-  }
+  },
 }
