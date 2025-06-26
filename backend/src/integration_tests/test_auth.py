@@ -5,7 +5,7 @@ from sqlalchemy import update
 from gateways.sqlalchemy_gateway import get_session
 from integration_tests.conftest import shuffle_case
 from models import User
-from dto import SignInDTO
+from dto import SignInDTO, SignUpDTO
 
 
 @pytest.mark.asyncio
@@ -65,3 +65,38 @@ async def test_signin_not_active_user(
         ).model_dump(mode="json"),
     )
     assert resp.status_code == 403
+
+
+@pytest.fixture
+def fake_signup_dto(faker: Faker):
+    return SignUpDTO(
+        username=faker.user_name(),
+        password=faker.password(),
+        phone_number=faker.phone_number(),
+    )
+
+
+@pytest.mark.asyncio
+async def test_signup_success(client: AsyncClient, fake_signup_dto: SignUpDTO):
+    resp = await client.post(
+        "/auth/signup",
+        json=fake_signup_dto.model_dump(mode="json"),
+    )
+    assert resp.status_code == 200
+    resp_data = resp.json()
+    assert resp_data["username"] == fake_signup_dto.username
+
+
+@pytest.mark.asyncio
+async def test_signup_already_exists(
+    client: AsyncClient,
+    test_user_with_password: tuple[User, str],
+    fake_signup_dto: SignUpDTO,
+):
+    user, _ = test_user_with_password
+    fake_signup_dto.username = user.username
+    resp = await client.post(
+        "/auth/signup",
+        json=fake_signup_dto.model_dump(mode="json"),
+    )
+    assert resp.status_code == 409

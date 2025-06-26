@@ -1,12 +1,14 @@
 from collections.abc import Mapping, Sequence
 from sqlalchemy import CursorResult, Row, delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
+from psycopg import errors as pg_errs
 from dto.base import PaginationDTO, PaginationResT
 from models.base import DatabaseBaseModel
 from gateways.sqlalchemy_gateway import get_session
 
 from gateways.exceptions import (
     GatewayError,
+    StorageAlreadyExistsError,
     StorageInvalidRefError,
     StorageNotFoundError,
 )
@@ -22,8 +24,10 @@ class SqlAlchemyRepository[T: DatabaseBaseModel]:
         try:
             async with get_session() as session:
                 res = await session.execute(stmt)
-        except IntegrityError:
-            raise StorageInvalidRefError
+        except IntegrityError as e:
+            if isinstance(e.orig, pg_errs.UniqueViolation):
+                raise StorageAlreadyExistsError() from e
+            raise StorageInvalidRefError() from e
         return res.scalars().one()
 
     async def save(self, instance: T):
@@ -31,8 +35,10 @@ class SqlAlchemyRepository[T: DatabaseBaseModel]:
             async with get_session() as session:
                 session.add(instance)
                 await session.flush()
-        except IntegrityError:
-            raise StorageInvalidRefError
+        except IntegrityError as e:
+            if isinstance(e.orig, pg_errs.UniqueViolation):
+                raise StorageAlreadyExistsError() from e
+            raise StorageInvalidRefError() from e
         return instance
 
     async def get_one(self, **filter_by) -> T:
@@ -56,8 +62,10 @@ class SqlAlchemyRepository[T: DatabaseBaseModel]:
         try:
             async with get_session() as session:
                 res = await session.execute(stmt)
-        except IntegrityError:
-            raise StorageInvalidRefError
+        except IntegrityError as e:
+            if isinstance(e.orig, pg_errs.UniqueViolation):
+                raise StorageAlreadyExistsError() from e
+            raise StorageInvalidRefError() from e
         obj = res.scalars().one_or_none()
         if not obj:
             raise StorageNotFoundError()

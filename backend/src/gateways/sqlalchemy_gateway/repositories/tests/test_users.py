@@ -1,5 +1,6 @@
 import pytest
 from gateways.contracts import IUsersRepo
+from gateways.exceptions import StorageAlreadyExistsError
 from models import User
 from gateways.sqlalchemy_gateway.repositories import UsersRepo
 
@@ -25,3 +26,10 @@ class TestUsersRepo:
         created_user = await users_repo.save(User(**fake_user_data))
         user_from_db = await users_repo.get_by_username(created_user.username)
         assert created_user == user_from_db
+
+    async def test_save_already_exists(
+        self, users_repo: IUsersRepo, fake_user_data: dict
+    ):
+        await users_repo.save(User(**fake_user_data))
+        with pytest.raises(StorageAlreadyExistsError):
+            await users_repo.save(User(**fake_user_data))
