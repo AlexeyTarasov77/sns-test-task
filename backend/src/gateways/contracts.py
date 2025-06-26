@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
-from dto import SignUpDTO, TgAccountCredentialsDTO, TelegramChatDTO
-from models import User
+from dto import TgAccountCredentialsDTO, TelegramChatDTO, TelegramChatInfoDTO
+from models import User, TelegramAccount
 from datetime import timedelta
-
-from models.user import TelegramAccount
 
 
 class IUsersRepo(ABC):
@@ -55,6 +53,9 @@ class ITelegramClient(ABC):
 
     @abstractmethod
     async def get_all_chats(self) -> list[TelegramChatDTO]: ...
+
+    @abstractmethod
+    async def get_chat_by_id(self, chat_id: int) -> TelegramChatInfoDTO: ...
 
 
 class ITelegramClientFactory:

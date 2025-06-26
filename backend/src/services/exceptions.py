@@ -25,6 +25,10 @@ class InvalidConfirmationCodeError(ServiceError):
     msg = "Provided confirmation code is invalid or expired"
 
 
+class ChatNotFoundError(ServiceError):
+    msg = "chat with given id does not exist"
+
+
 class TelegramAccNotExistError(ServiceError):
     msg = "telegram account with provided phone number does not exist"
 

@@ -14,7 +14,7 @@ from telethon.errors import (
     PhoneCodeEmptyError,
     ApiIdInvalidError,
 )
-from dto import TelegramChatDTO
+from dto import TelegramChatDTO, TelegramChatInfoDTO
 from gateways.contracts import ITelegramClient
 from models import TelegramAccount
 
@@ -51,7 +51,10 @@ class TelethonTgProvider(ITelegramClient):
             self._session_path, self._creds.api_id, self._creds.api_hash
         )
 
+    async def get_chat_by_id(self, chat_id: int) -> TelegramChatInfoDTO: ...
+
     async def get_all_chats(self) -> list[TelegramChatDTO]:
+        # TODO: add fetching last message for every chat
         async with self._client as client:
             print("AEXIT METHOD", client.__aexit__)
             res = [

@@ -14,4 +14,5 @@ from .telegram import (
     TgConnectConfirmDTO as TgConnectConfirmDTO,
     TgConnectRequestResultDTO as TgConnectRequestResultDTO,
     TelegramChatDTO as TelegramChatDTO,
+    TelegramChatInfoDTO as TelegramChatInfoDTO,
 )

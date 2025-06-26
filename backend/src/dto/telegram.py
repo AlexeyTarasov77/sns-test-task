@@ -21,7 +21,14 @@ class TgConnectConfirmDTO(TgConnectRequestDTO):
     phone_code: str
 
 
-class TelegramChatDTO(BaseDTO):
+class BaseChatDTO(BaseDTO):
     id: int
     title: str
     photo_url: str
+
+
+class TelegramChatDTO(BaseChatDTO):
+    last_message: str
+
+
+class TelegramChatInfoDTO(BaseChatDTO): ...

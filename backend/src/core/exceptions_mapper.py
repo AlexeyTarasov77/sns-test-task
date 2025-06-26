@@ -18,6 +18,7 @@ class HTTPExceptionsMapper:
         service_exc.UserAlreadyExistsError: status.HTTP_409_CONFLICT,
         service_exc.TelegramAccAlreadyConnectedError: status.HTTP_409_CONFLICT,
         service_exc.UserAlreadyExistsError: status.HTTP_409_CONFLICT,
+        service_exc.ChatNotFoundError: status.HTTP_404_NOT_FOUND,
     }
 
     def __init__(

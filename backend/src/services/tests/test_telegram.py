@@ -20,6 +20,7 @@ from typing import NamedTuple
 from unittest.mock import Mock, create_autospec
 
 from services.exceptions import (
+    ChatNotFoundError,
     InvalidTelegramAccCredentialsError,
     TelegramAccAlreadyConnectedError,
     TelegramAccNotConnectedError,
@@ -192,7 +193,10 @@ class TestTelegramService:
         test_user_id = randint(1, 100)
         expected_chats = [
             TelegramChatDTO(
-                id=randint(1, 100), title=faker.user_name(), photo_url=faker.image_url()
+                id=randint(1, 100),
+                title=faker.user_name(),
+                photo_url=faker.image_url(),
+                last_message=faker.sentence(),
             )
             for _ in range(5)
         ]
@@ -210,4 +214,37 @@ class TestTelegramService:
         suite.mock_tg_acc_repo.get_by_user_id.side_effect = StorageNotFoundError()
         with pytest.raises(TelegramAccNotConnectedError):
             await suite.service.list_chats(test_user_id)
+        suite.mock_tg_acc_repo.get_by_user_id.assert_awaited_once_with(test_user_id)
+
+    async def test_get_chat_success(self, suite: TelegramTestSuite):
+        test_chat_id = randint(1000, 100000)
+        test_user_id = randint(1000, 100000)
+        expectedChat = object()
+        expected_tg_acc = TelegramAccount(user_id=test_user_id)
+        suite.mock_tg_acc_repo.get_by_user_id.return_value = expected_tg_acc
+        suite.mock_tg_client.get_chat_by_id.return_value = expectedChat
+        chat = await suite.service.get_chat(test_user_id, test_chat_id)
+        suite.mock_tg_factory.new_client.assert_called_with(expected_tg_acc)
+        suite.mock_tg_client.get_chat_by_id.assert_awaited_with(test_chat_id)
+        suite.mock_tg_acc_repo.get_by_user_id.assert_awaited_once_with(test_user_id)
+        assert chat == expectedChat
+
+    async def test_get_chat_no_tg_connected(self, suite: TelegramTestSuite):
+        test_chat_id = randint(1000, 100000)
+        test_user_id = randint(1000, 100000)
+        suite.mock_tg_acc_repo.get_by_user_id.side_effect = StorageNotFoundError()
+        with pytest.raises(TelegramAccNotConnectedError):
+            await suite.service.get_chat(test_user_id, test_chat_id)
+        suite.mock_tg_acc_repo.get_by_user_id.assert_awaited_once_with(test_user_id)
+
+    async def test_get_chat_not_found(self, suite: TelegramTestSuite):
+        test_chat_id = randint(1000, 100000)
+        test_user_id = randint(1000, 100000)
+        expected_tg_acc = TelegramAccount(user_id=test_user_id)
+        suite.mock_tg_acc_repo.get_by_user_id.return_value = expected_tg_acc
+        suite.mock_tg_client.get_chat_by_id.side_effect = StorageNotFoundError()
+        with pytest.raises(ChatNotFoundError):
+            await suite.service.get_chat(test_user_id, test_chat_id)
+        suite.mock_tg_factory.new_client.assert_called_with(expected_tg_acc)
+        suite.mock_tg_client.get_chat_by_id.assert_awaited_with(test_chat_id)
         suite.mock_tg_acc_repo.get_by_user_id.assert_awaited_once_with(test_user_id)
