@@ -1,4 +1,5 @@
 from datetime import timedelta
+from random import randint
 from typing import NamedTuple
 from faker import Faker
 from gateways.exceptions import StorageAlreadyExistsError, StorageNotFoundError
@@ -41,7 +42,7 @@ def suite() -> AuthTestSuite:
 
 @pytest.fixture
 def fake_signin_dto(faker: Faker) -> SignInDTO:
-    return SignInDTO(username=faker.user_name(), password=faker.password())
+    return SignInDTO(username=faker.user_name(), password=fake.password())
 
 
 @pytest.fixture
@@ -59,6 +60,8 @@ class TestAuthService:
         self, suite: AuthTestSuite, fake_signin_dto: SignInDTO, faker: Faker
     ):
         expected_user = User(
+            id=randint(1, 100),
+            phone_number=faker.phone_number(),
             username=fake_signin_dto.username,
             is_active=True,
             password_hash=fake_signin_dto.password.encode(),
@@ -67,7 +70,7 @@ class TestAuthService:
         suite.mock_jwt_provider.new_token.return_value = expected_token
         suite.mock_password_hasher.compare.return_value = True
         suite.mock_users_repo.get_by_username.return_value = expected_user
-        user, token = await suite.service.signin(fake_signin_dto)
+        res = await suite.service.signin(fake_signin_dto)
         suite.mock_users_repo.get_by_username.assert_awaited_once_with(
             fake_signin_dto.username
         )
@@ -77,8 +80,8 @@ class TestAuthService:
         suite.mock_password_hasher.compare.assert_called_once_with(
             fake_signin_dto.password, expected_user.password_hash
         )
-        assert token == expected_token
-        assert user.username == expected_user.username
+        assert res.token == expected_token
+        assert res.user.username == expected_user.username
 
     async def test_signin_not_found(
         self, suite: AuthTestSuite, fake_signin_dto: SignInDTO

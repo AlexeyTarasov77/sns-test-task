@@ -5,6 +5,10 @@ class ServiceError(BaseError):
     msg: str = "server error"
 
 
+class InvalidAuthTokenError(ServiceError):
+    msg = "invalid or expired auth token. Try to sign in again"
+
+
 class InvalidAuthCredentialsError(ServiceError):
     msg = "invalid auth credentials"
 

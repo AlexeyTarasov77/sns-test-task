@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 import typing as t
 from dotenv import load_dotenv
@@ -36,6 +37,8 @@ class Config(BaseSettings):
     server: Server = Field(default=Server())
     tg: _Telegram | None = None
     pg_dsn: PostgresDsn
+    auth_token_ttl: timedelta = Field(default=timedelta(minutes=30))
+    jwt_secret: str
 
 
 load_dotenv()

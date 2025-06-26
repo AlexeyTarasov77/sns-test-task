@@ -3,5 +3,6 @@ import pytest
 
 
 @pytest.fixture
-def faker():
+def fake():
+    print("\nCREATING FAKER INSTANCE\n")
     return Faker()

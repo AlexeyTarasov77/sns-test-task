@@ -10,9 +10,9 @@ class HTTPExceptionsMapper:
 
     _EXCEPTION_MAPPING: Mapping[type[Exception], int] = {
         service_exc.InvalidAuthCredentialsError: status.HTTP_401_UNAUTHORIZED,
-        service_exc.NotActiveUserError: status.HTTP_400_BAD_REQUEST,
         service_exc.InvalidConfirmationCodeError: status.HTTP_400_BAD_REQUEST,
         service_exc.InvalidTelegramAccCredentialsError: status.HTTP_400_BAD_REQUEST,
+        service_exc.NotActiveUserError: status.HTTP_403_FORBIDDEN,
         service_exc.TelegramAcc2FARequired: status.HTTP_403_FORBIDDEN,
         service_exc.TelegramAccNotConnectedError: status.HTTP_404_NOT_FOUND,
         service_exc.UserAlreadyExistsError: status.HTTP_409_CONFLICT,

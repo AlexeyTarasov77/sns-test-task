@@ -7,6 +7,8 @@ from .base import (
 from .users import (
     SignInDTO as SignInDTO,
     SignUpDTO as SignUpDTO,
+    SignInResultDTO as SignInResultDTO,
+    UserDTO as UserDTO,
 )
 from .telegram import (
     TgAccountCredentialsDTO as TgAccountCredentialsDTO,
