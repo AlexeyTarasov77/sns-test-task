@@ -64,7 +64,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const register = async (data: IRegisterForm) => {
     try {
       setIsLoading(true);
-      await authService.register(data);
+      return await authService.register(data);
     } catch (err) {
       return getErrorMessage(err);
     } finally {
