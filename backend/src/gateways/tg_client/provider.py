@@ -36,7 +36,6 @@ class AuthOnlyTelethonClient(TelethonTelegramClient):
         return self
 
     async def __aexit__(self, *args):
-        print("\n\nEXITING\n\n", args)
         await self.disconnect()
 
 
@@ -60,7 +59,6 @@ class TelethonTgProvider(ITelegramClient):
     async def get_all_chats(self) -> list[TelegramChatDTO]:
         # TODO: add fetching last message for every chat
         async with self._client as client:
-            print("AEXIT METHOD", client.__aexit__)
             res = [
                 TelegramChatDTO.model_validate(chat)
                 async for chat in client.iter_dialogs()

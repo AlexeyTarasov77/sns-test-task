@@ -4,6 +4,8 @@ from dto import (
     TgConnectRequestResultDTO,
     TelegramChatDTO,
     TelegramChatInfoDTO,
+    UserTelegramAccDTO,
+    TelegramAccountInfoDTO,
 )
 from gateways.contracts import ITelegramAccountsRepo, ITelegramClientFactory, IUsersRepo
 from gateways.exceptions import (
@@ -61,7 +63,7 @@ class TelegramService:
 
     async def confirm_tg_connect(
         self, user_id: int, dto: TgConnectConfirmDTO
-    ) -> TelegramAccount:
+    ) -> UserTelegramAccDTO:
         tg_acc = TelegramAccount(
             user_id=user_id,
             api_id=dto.api_id,
@@ -85,9 +87,17 @@ class TelegramService:
         except TelegramInvalidPhoneNumberError as e:
             raise TelegramAccNotExistError() from e
         try:
-            return await self._tg_accounts_repo.save(tg_acc)
+            tg_acc = await self._tg_accounts_repo.save(tg_acc)
         except StorageAlreadyExistsError:
             raise TelegramAccAlreadyConnectedError()
+        acc_info = await self.get_account_info(tg_acc.id)
+        return UserTelegramAccDTO(
+            id=tg_acc.id,
+            api_id=tg_acc.api_id,
+            phone_number=tg_acc.phone_number,
+            created_at=tg_acc.created_at,
+            info=TelegramAccountInfoDTO.model_validate(acc_info),
+        )
 
     async def list_chats(self, user_id: int) -> list[TelegramChatDTO]:
         try:
