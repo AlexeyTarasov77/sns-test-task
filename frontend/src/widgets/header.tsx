@@ -40,7 +40,7 @@ export function UIHeader() {
         <h2 className="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">Social Network Notifications</h2>
       </div>
       <div className="flex gap-5 items-center">
-        <button onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url || user?.tg.info.photo_url} /></button>
+        <button onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url || user?.tg?.info.photo_url} /></button>
         <UIButton className="max-w-32" onClick={() => logout()}>Logout</UIButton>
       </div>
     </header>

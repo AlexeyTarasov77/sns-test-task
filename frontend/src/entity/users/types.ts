@@ -31,5 +31,5 @@ export interface ITelegramAccountWithInfo extends ITelegramAccount {
 }
 
 export interface IUserExtended extends IUser {
-  tg: ITelegramAccountWithInfo
+  tg?: ITelegramAccountWithInfo
 }

@@ -1,6 +1,7 @@
-import { POST } from "@/shared/api/client"
+import { DELETE, POST } from "@/shared/api/client"
 import { ITelegramConnectConfirmPayload, ITelegramConnectInfo, ITelegramConnectRequestPayload } from "./types"
 import { ITelegramAccountWithInfo } from "@/entity/users/types"
+import { useEffect, useState } from "react"
 
 export const requestTgConnect = async (data: ITelegramConnectRequestPayload) => {
   const resp = await POST<ITelegramConnectInfo>("/tg/connect/request", data)
@@ -18,3 +19,9 @@ export const confirmTgConnect = async (data: ITelegramConnectConfirmPayload) => 
   return resp.data
 }
 
+export const tgDisconnect = async () => {
+  const resp = await DELETE("/tg/logout")
+  if (!resp.ok) {
+    throw new Error(resp.detail)
+  }
+}

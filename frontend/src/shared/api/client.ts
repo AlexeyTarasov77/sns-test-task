@@ -18,7 +18,7 @@ export async function sendReq<T>(
     options = { credentials: 'include' }
   }
   const resp = await fetch(url, options);
-  const data = await resp.json();
+  const data = resp.status === 204 ? {} : await resp.json();
   if (!resp.ok) {
     return { status: resp.status, ok: resp.ok, detail: data.detail };
   }
@@ -39,3 +39,12 @@ export async function POST<T>(
     headers: { "Content-Type": "application/json" },
   });
 }
+
+export async function DELETE(
+  path: string | URL,
+): APIResponse<null> {
+  return await sendReq(path, {
+    method: "DELETE",
+  });
+}
+
