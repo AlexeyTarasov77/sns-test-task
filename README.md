@@ -20,9 +20,16 @@
     make docker/run-migrations
   ```
 
-5. Start frontend next.js server
+5. Change api base url to match your backend server:
   ```bash
-    cd ../frontend && npm install && npm run dev
+    cd ../frontend
+  ```
+  Open `src/shared/constants/base.ts` in your editor and change value of SERVER_URL constant, 
+e.g `export const SERVER_URL = "https://localhost:8000/api/v1"` if server is running on localhost (remember cookies won't work on localhost, and therefore auth won't work too because token is saved in cookies)
+
+6. Start frontend next.js server
+  ```bash
+    npm install && npm run dev
   ```
 
-6. Enjoy the app!
+7. Enjoy the app!
