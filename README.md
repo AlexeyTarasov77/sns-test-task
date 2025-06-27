@@ -10,9 +10,13 @@
     cd backend && cp .example.env .env
   ```
 
-3. Start backend server (you need to additionally use something like ngrok to run your dev server over https - otherwise cookies won't work)
+3. Start backend server with ngrok for cookies to work
   ```bash
-    make docker/up
+    docker compose -f docker-compose.dev.yaml up -d
+  ```
+  And then:
+  ```bash
+  ngrok http http://0.0.0.0:8000
   ```
 
 4. Run database migrations
@@ -24,8 +28,7 @@
   ```bash
     cd ../frontend
   ```
-  Open `src/shared/constants/base.ts` in your editor and change value of SERVER_URL constant, 
-e.g `export const SERVER_URL = "https://localhost:8000/api/v1"` if server is running on localhost (remember cookies won't work on localhost, and therefore auth won't work too because token is saved in cookies)
+  Open `src/shared/constants/base.ts` in your editor and change value of SERVER_URL constant, to the following: `{your_ngrok_url}/api/v1` - substitute your_ngrok_url with your's actual url obtained in step 3. E.g: https://3ef8-178-143-0-230.ngrok-free.app/api/v1
 
 6. Start frontend next.js server
   ```bash
