@@ -24,11 +24,11 @@ class TgConnectConfirmDTO(TgConnectRequestDTO):
 class BaseChatDTO(BaseDTO):
     id: int
     title: str
-    photo_url: str
+    photo_url: str | None = None
 
 
 class TelegramChatDTO(BaseChatDTO):
-    last_message: str
+    last_message: str | None = None
 
 
 class TelegramChatInfoDTO(BaseChatDTO): ...

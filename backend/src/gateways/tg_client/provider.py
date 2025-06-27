@@ -1,5 +1,7 @@
 from time import time
-from telethon.tl.types import User
+from telethon.hints import EntityLike
+from telethon.tl.types import User as TgUser
+from telethon.utils import get_display_name
 from core.config import app_root, app_config
 from gateways.exceptions import (
     TelegramInvalidCredentialsError,
@@ -22,7 +24,7 @@ from models import TelegramAccount
 
 
 class AuthOnlyTelethonClient(TelethonTelegramClient):
-    user: User
+    user: TgUser
     """Overrides __aenter__ original method to avoid interactive login behaviour"""
 
     async def __aenter__(self):
@@ -54,15 +56,34 @@ class TelethonTgProvider(ITelegramClient):
             self._session_path, self._creds.api_id, self._creds.api_hash
         )
 
+    async def _download_photo(self, photo: EntityLike, filename: str) -> str:
+        photo_path = app_root / app_config.media_path / filename
+        if not photo_path.exists():
+            await self._client.download_profile_photo(
+                photo,
+                photo_path.absolute().as_posix(),
+            )
+        photo_url = app_config.media_serve_url + "/" + filename
+        return photo_url
+
     async def get_chat_by_id(self, chat_id: int) -> TelegramChatInfoDTO: ...
 
     async def get_all_chats(self) -> list[TelegramChatDTO]:
-        # TODO: add fetching last message for every chat
+        res: list[TelegramChatDTO] = []
         async with self._client as client:
-            res = [
-                TelegramChatDTO.model_validate(chat)
-                async for chat in client.iter_dialogs()
-            ]
+            async for chat in client.iter_dialogs():
+                photo_url = None
+                if chat.entity.photo:
+                    filename = f"user_{self._user_id}_chat_{chat.entity.id}.jpg"
+                    photo_url = await self._download_photo(chat.entity, filename)
+                res.append(
+                    TelegramChatDTO(
+                        id=chat.entity.id,
+                        title=get_display_name(chat.entity),
+                        photo_url=photo_url,
+                        last_message=chat.message.message,
+                    )
+                )
         return res
 
     async def send_signin_code(self) -> str:
@@ -118,13 +139,7 @@ class TelethonTgProvider(ITelegramClient):
             photo_url = None
             if client.user.photo:
                 filename = f"user_{self._user_id}_avatar.jpg"
-                photo_path = app_root / app_config.media_path / filename
-                if not photo_path.exists():
-                    await client.download_profile_photo(
-                        client.user,
-                        photo_path.absolute().as_posix(),
-                    )
-                photo_url = app_config.media_serve_url + "/" + filename
+                photo_url = await self._download_photo(client.user, filename)
             return TelegramAccountInfoDTO.model_validate(
                 {**client.user.to_dict(), "photo_url": photo_url}
             )
