@@ -4,6 +4,7 @@ import logging
 from api.v1.router import v1_router
 from core.config import app_config
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
@@ -22,6 +23,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/media", StaticFiles(directory=app_config.media_path), name="media")
 
 HTTPExceptionsMapper(app, logging.getLogger(__name__)).setup_handlers()
 

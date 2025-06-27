@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, status
 from api.v1.utils import AUTH_TOKEN_KEY, get_user_id_or_none, get_user_id_or_raise
 from core.ioc import Inject
 from services.auth import AuthService
@@ -11,6 +11,12 @@ router = APIRouter(prefix="/auth")
 AuthServiceDep = Annotated[AuthService, Inject(AuthService)]
 TelegramServiceDep = Annotated[TelegramService, Inject(TelegramService)]
 
+cookie_attrs = {
+    "httponly": True,
+    "secure": True,
+    "samesite": "none",
+}
+
 
 @router.post("/signin")
 async def signin(dto: SignInDTO, service: AuthServiceDep, resp: Response) -> UserDTO:
@@ -19,9 +25,7 @@ async def signin(dto: SignInDTO, service: AuthServiceDep, resp: Response) -> Use
         AUTH_TOKEN_KEY,
         res.token,
         int(service.auth_token_ttl.total_seconds()),
-        httponly=True,
-        secure=True,
-        samesite="none",
+        **cookie_attrs,
     )
     return res.user
 
@@ -51,6 +55,14 @@ async def get_me(
     return UserExtendedDTO(
         **UserDTO.model_validate(user).model_dump(), tg=user_tg_acc_dto
     )
+
+
+@router.post(
+    "/logout",
+    dependencies=[Depends(get_user_id_or_raise)],
+)
+async def logout(resp: Response):
+    resp.delete_cookie(AUTH_TOKEN_KEY, **cookie_attrs)
 
 
 @router.get("/is-authenticated")
