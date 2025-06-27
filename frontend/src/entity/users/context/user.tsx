@@ -1,5 +1,5 @@
 "use client"
-import { createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
+import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useState } from "react";
 import {
   IUserExtended,
 } from "../types";
@@ -7,6 +7,7 @@ import { usersService } from "../api/users";
 
 interface IUserCtx {
   user: IUserExtended | null;
+  setUser: Dispatch<SetStateAction<IUserExtended | null>>;
   isLoading: boolean;
 }
 
@@ -41,6 +42,7 @@ export function UsersProvider({ children }: PropsWithChildren) {
     <UserCtx.Provider
       value={{
         user,
+        setUser,
         isLoading,
       }}
     >

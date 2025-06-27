@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation"
 import { Avatar } from "../shared/avatar"
 import { useUserCtx } from "@/entity/users/context/user"
+import { UIButton } from "@/shared/ui/button"
+import { useAuthCtx } from "@/entity/users/context/auth"
 
 function HeaderIcon() {
   return (
@@ -28,6 +30,7 @@ function HeaderIcon() {
 export function UIHeader() {
   const router = useRouter()
   const { user } = useUserCtx()
+  const { logout } = useAuthCtx()
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3">
       <div className="flex items-center gap-4 text-[#111418]">
@@ -36,7 +39,10 @@ export function UIHeader() {
         </div>
         <h2 className="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">Social Network Notifications</h2>
       </div>
-      <button onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url} /></button>
+      <div className="flex gap-5 items-center">
+        <button onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url || user?.tg.info.photo_url} /></button>
+        <UIButton className="max-w-32" onClick={() => logout()}>Logout</UIButton>
+      </div>
     </header>
   )
 }

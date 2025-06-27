@@ -5,6 +5,7 @@ import { ITelegramConnectConfirmPayload, ITelegramConnectRequestPayload } from "
 import { confirmTgConnect, requestTgConnect } from "./api/telegram";
 import { getErrorMessage, renderError } from "@/shared/utils/errors";
 import { validationHelpers } from "@/shared/utils/validation";
+import { useUserCtx } from "@/entity/users/context/user";
 
 type ConnectFormDataT = ITelegramConnectRequestPayload & {
   phone_code_hash?: string;
@@ -13,12 +14,14 @@ type ConnectFormDataT = ITelegramConnectRequestPayload & {
 }
 
 export function TgConnectForm() {
+  const { setUser, user } = useUserCtx()
   const { handleSubmit, control, setError, setValue, watch, formState: { errors } } = useForm<ConnectFormDataT>()
   const connectReqSent = !!watch("phone_code_hash")
   const onSubmit = async (data: ConnectFormDataT) => {
     if (connectReqSent) {
       try {
-        await confirmTgConnect(data as ITelegramConnectConfirmPayload)
+        const connected_tg = await confirmTgConnect(data as ITelegramConnectConfirmPayload)
+        setUser({ ...user!, tg: connected_tg })
       }
       catch (err) {
         setError("root", { message: getErrorMessage(err) })

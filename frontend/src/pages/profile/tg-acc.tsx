@@ -18,6 +18,10 @@ export function TgAccount({ acc }: { acc: ITelegramAccountWithInfo }) {
           <p className="text-[#111518] text-sm font-normal leading-normal">{acc.phone_number}</p>
         </div>
         <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe1e6] py-5">
+          <p className="text-[#60768a] text-sm font-normal leading-normal">Telegram username</p>
+          <p className="text-[#111518] text-sm font-normal leading-normal">{acc.info.username}</p>
+        </div>
+        <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe1e6] py-5">
           <p className="text-[#60768a] text-sm font-normal leading-normal">Created At</p>
           <p className="text-[#111518] text-sm font-normal leading-normal">{acc.created_at}</p>
         </div>

@@ -23,5 +23,10 @@ export const authService = {
     }
     return resp.data
   },
-  logout: async () => { }
+  logout: async () => {
+    const resp = await POST("/auth/logout", {})
+    if (!resp.ok) {
+      throw new Error(resp.detail)
+    }
+  }
 }
