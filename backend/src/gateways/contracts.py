@@ -29,6 +29,9 @@ class ITelegramAccountsRepo(ABC):
     @abstractmethod
     async def get_by_id(self, acc_id: int) -> TelegramAccount: ...
 
+    @abstractmethod
+    async def delete_by_id(self, acc_id: int) -> None: ...
+
 
 class IPasswordHasher(ABC):
     @abstractmethod
@@ -71,6 +74,8 @@ class ITelegramClient(ABC):
 
     @abstractmethod
     async def get_me(self) -> TelegramAccountInfoDTO: ...
+    @abstractmethod
+    async def delete_session(self) -> None: ...
 
 
 class ITelegramClientFactory:

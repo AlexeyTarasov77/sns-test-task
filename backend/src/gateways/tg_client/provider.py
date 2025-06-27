@@ -1,4 +1,5 @@
-from time import time
+import os
+import asyncio
 from telethon.hints import EntityLike
 from telethon.tl.types import User as TgUser
 from telethon.utils import get_display_name
@@ -143,3 +144,6 @@ class TelethonTgProvider(ITelegramClient):
             return TelegramAccountInfoDTO.model_validate(
                 {**client.user.to_dict(), "photo_url": photo_url}
             )
+
+    async def delete_session(self) -> None:
+        await asyncio.to_thread(os.remove, self._session_path)

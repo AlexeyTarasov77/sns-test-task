@@ -11,3 +11,6 @@ class TelegramAccountsRepo(SqlAlchemyRepository, ITelegramAccountsRepo):
 
     async def get_by_id(self, acc_id: int) -> TelegramAccount:
         return await super().get_one(id=acc_id)
+
+    async def delete_by_id(self, acc_id: int) -> None:
+        return await super().delete_or_raise_not_found(id=acc_id)

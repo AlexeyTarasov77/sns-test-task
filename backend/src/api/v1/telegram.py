@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from dto import (
     TgConnectRequestDTO,
     TgConnectConfirmDTO,
@@ -29,6 +29,13 @@ async def request_tg_connect(
     service: TelegramServiceDep,
 ):
     return await service.request_tg_connect(user_id, dto)
+
+
+@router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_tg_acc(
+    user_id: Annotated[int, Depends(get_user_id_or_raise)], service: TelegramServiceDep
+):
+    await service.remove_tg_acc(user_id)
 
 
 @router.post("/connect/confirm")

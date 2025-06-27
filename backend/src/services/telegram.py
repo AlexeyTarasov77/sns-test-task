@@ -125,3 +125,12 @@ class TelegramService:
             raise TelegramAccNotConnectedError()
         tg_client = self._tg_client_factory.new_client(tg_acc)
         return await tg_client.get_me()
+
+    async def remove_tg_acc(self, user_id: int):
+        try:
+            tg_acc = await self._tg_accounts_repo.get_by_user_id(user_id)
+        except StorageNotFoundError:
+            raise TelegramAccNotConnectedError()
+        await self._tg_accounts_repo.delete_by_id(tg_acc.id)
+        tg_client = self._tg_client_factory.new_client(tg_acc)
+        await tg_client.delete_session()
