@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+from pathlib import Path
 
 from api.v1.router import v1_router
 from core.config import app_config
@@ -23,6 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+media_path = Path(app_config.media_path)
+media_path.mkdir(exist_ok=True)
 
 app.mount("/media", StaticFiles(directory=app_config.media_path), name="media")
 
