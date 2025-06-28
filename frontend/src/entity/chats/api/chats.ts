@@ -1,5 +1,5 @@
 import { GET } from "@/shared/api/client"
-import { IChat } from "../types"
+import { IChat, IChatExtended } from "../types"
 
 export const chatsService = {
   listTgChats: async () => {
@@ -9,4 +9,12 @@ export const chatsService = {
     }
     return resp.data
   },
+  getChat: async (chatId: number) => {
+    const resp = await GET<IChatExtended>("/tg/chats/" + String(chatId))
+    if (!resp.ok) {
+      throw new Error(resp.detail)
+    }
+    resp.data.messages.reverse()
+    return resp.data
+  }
 }

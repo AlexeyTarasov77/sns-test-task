@@ -17,6 +17,7 @@ export interface ITelegramAccountInfo {
   last_name?: string
   username: string
   photo_url?: string
+  display_name: string
 }
 
 export interface ITelegramAccount {

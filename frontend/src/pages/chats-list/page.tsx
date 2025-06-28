@@ -5,8 +5,11 @@ import { useListChats } from "./api/chats"
 import Image from "next/image"
 import { useState } from "react"
 import { Avatar } from "@/shared/avatar"
+import { useRouter } from "next/navigation"
+import { ChatItem } from "./ui/chat-item"
 
 export function ChatsListPage() {
+  const router = useRouter()
   const { user, isLoading: isUserLoading } = useUserCtx()
   const { chats, isLoading: isChatsLoading } = useListChats(!!user?.tg)
   const [searchQuery, setSearchQuery] = useState("")
@@ -42,18 +45,7 @@ export function ChatsListPage() {
             </div>
           </label>
         </div>
-        {filteredChats.map(chat => (
-          <div key={chat.id} className="flex items-center gap-4 bg-white px-4 min-h-[72px] py-2">
-            <Avatar
-              src={chat.photo_url}
-              size={50}
-            ></Avatar>
-            <div className="flex flex-col justify-center">
-              <p className="text-[#111418] text-base font-medium leading-normal line-clamp-1">{chat.title}</p>
-              <p className="text-[#60758a] text-sm font-normal leading-normal line-clamp-2">{chat.last_message}</p>
-            </div>
-          </div>
-        ))}
+        {filteredChats.map(chat => <ChatItem chat={chat} key={chat.id} />)}
       </div>
     </div>
   )
