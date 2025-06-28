@@ -1,4 +1,5 @@
 from dto.base import BaseDTO
+from datetime import datetime
 
 
 class TgAccountCredentialsDTO(BaseDTO):
@@ -31,11 +32,22 @@ class TelegramChatDTO(BaseChatDTO):
     last_message: str | None = None
 
 
-class TelegramChatInfoDTO(BaseChatDTO): ...
-
-
 class TelegramAccountInfoDTO(BaseDTO):
     first_name: str | None = None
     last_name: str | None = None
-    username: str
+    username: str | None
     photo_url: str | None = None
+    display_name: str
+
+
+class TelegramMessageDTO(BaseDTO):
+    id: int
+    date: datetime
+    out: bool
+    message: str
+    reply_to_msg_id: int | None = None
+    sender: TelegramAccountInfoDTO
+
+
+class TelegramChatInfoDTO(BaseChatDTO):
+    messages: list[TelegramMessageDTO]

@@ -1,10 +1,11 @@
 import os
 import asyncio
 from telethon.hints import EntityLike
-from telethon.tl.types import User as TgUser
+from telethon.tl.types import Chat, User as TgUser
 from telethon.utils import get_display_name
 from core.config import app_root, app_config
 from gateways.exceptions import (
+    StorageNotFoundError,
     TelegramInvalidCredentialsError,
     TelegramInvalidPhoneCodeError,
     TelegramInvalidPhoneNumberError,
@@ -19,7 +20,12 @@ from telethon.errors import (
     PhoneCodeEmptyError,
     ApiIdInvalidError,
 )
-from dto import TelegramChatDTO, TelegramChatInfoDTO, TelegramAccountInfoDTO
+from dto import (
+    TelegramChatDTO,
+    TelegramChatInfoDTO,
+    TelegramAccountInfoDTO,
+    TelegramMessageDTO,
+)
 from gateways.contracts import ITelegramClient
 from models import TelegramAccount
 
@@ -39,7 +45,7 @@ class AuthOnlyTelethonClient(TelethonTelegramClient):
         return self
 
     async def __aexit__(self, *args):
-        await self.disconnect()
+        await self.disconnect()  # type: ignore
 
 
 class TelethonTgProvider(ITelegramClient):
@@ -57,6 +63,12 @@ class TelethonTgProvider(ITelegramClient):
             self._session_path, self._creds.api_id, self._creds.api_hash
         )
 
+    def _get_chat_avatar_filename(self, chat_id: int) -> str:
+        return f"user_{self._user_id}_chat_{chat_id}.jpg"
+
+    def _get_user_avatar_filename(self, user_id: int | None = None) -> str:
+        return f"user_{user_id or self._user_id}_avatar.jpg"
+
     async def _download_photo(self, photo: EntityLike, filename: str) -> str:
         photo_path = app_root / app_config.media_path / filename
         if not photo_path.exists():
@@ -67,7 +79,52 @@ class TelethonTgProvider(ITelegramClient):
         photo_url = app_config.media_serve_url + "/" + filename
         return photo_url
 
-    async def get_chat_by_id(self, chat_id: int) -> TelegramChatInfoDTO: ...
+    async def get_chat_by_id(
+        self, chat_id: int, messages_limit: int = 10
+    ) -> TelegramChatInfoDTO:
+        async with self._client as client:
+            try:
+                chat: Chat | TgUser = await client.get_entity(chat_id)  # type: ignore
+            except ValueError as e:
+                raise StorageNotFoundError() from e
+            photo_url = None
+            if chat.photo:
+                filename = (
+                    self._get_chat_avatar_filename(chat.id)
+                    if isinstance(chat, Chat)
+                    else self._get_user_avatar_filename()
+                )
+                photo_url = await self._download_photo(chat, filename)
+            chat_messages: list[TelegramMessageDTO] = []
+            async for msg in client.iter_messages(chat_id, messages_limit):
+                # skip non-text messages since it's not supported yet
+                if not msg.message:
+                    continue
+                photo_url = None
+                if msg.sender.photo:
+                    filename = self._get_user_avatar_filename(msg.sender.id)
+                    photo_url = await self._download_photo(msg.sender, filename)
+                chat_messages.append(
+                    TelegramMessageDTO.model_validate(
+                        {
+                            **msg.to_dict(),
+                            "reply_to_msg_id": msg.reply_to.reply_to_msg_id
+                            if msg.reply_to
+                            else None,
+                            "sender": {
+                                **msg.sender.to_dict(),
+                                "display_name": get_display_name(msg.sender),
+                                "photo_url": photo_url,
+                            },
+                        }
+                    )
+                )
+            return TelegramChatInfoDTO(
+                id=chat.id,
+                title=get_display_name(chat),
+                photo_url=photo_url,
+                messages=chat_messages,
+            )
 
     async def get_all_chats(self) -> list[TelegramChatDTO]:
         res: list[TelegramChatDTO] = []
@@ -75,7 +132,7 @@ class TelethonTgProvider(ITelegramClient):
             async for chat in client.iter_dialogs():
                 photo_url = None
                 if chat.entity.photo:
-                    filename = f"user_{self._user_id}_chat_{chat.entity.id}.jpg"
+                    filename = self._get_chat_avatar_filename(chat.entity.id)
                     photo_url = await self._download_photo(chat.entity, filename)
                 res.append(
                     TelegramChatDTO(
@@ -120,7 +177,7 @@ class TelethonTgProvider(ITelegramClient):
             await client.sign_in(
                 self._phone_number,
                 phone_code,
-                password=password,
+                password=password,  # type: ignore
                 phone_code_hash=phone_code_hash,
             )
         except SessionPasswordNeededError:
@@ -139,10 +196,14 @@ class TelethonTgProvider(ITelegramClient):
         async with self._client as client:
             photo_url = None
             if client.user.photo:
-                filename = f"user_{self._user_id}_avatar.jpg"
+                filename = self._get_user_avatar_filename()
                 photo_url = await self._download_photo(client.user, filename)
             return TelegramAccountInfoDTO.model_validate(
-                {**client.user.to_dict(), "photo_url": photo_url}
+                {
+                    **client.user.to_dict(),
+                    "display_name": get_display_name(client.user),
+                    "photo_url": photo_url,
+                }
             )
 
     async def delete_session(self) -> None:

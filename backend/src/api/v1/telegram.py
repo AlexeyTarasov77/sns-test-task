@@ -22,6 +22,15 @@ async def list_chats(
     return await service.list_chats(user_id)
 
 
+@router.get("/chats/{id}")
+async def get_chat(
+    id: int,
+    user_id: Annotated[int, Depends(get_user_id_or_raise)],
+    service: TelegramServiceDep,
+):
+    return await service.get_chat(user_id, id)
+
+
 @router.post("/connect/request")
 async def request_tg_connect(
     user_id: Annotated[int, Depends(get_user_id_or_raise)],

@@ -20,4 +20,5 @@ from .telegram import (
     TelegramChatDTO as TelegramChatDTO,
     TelegramChatInfoDTO as TelegramChatInfoDTO,
     TelegramAccountInfoDTO as TelegramAccountInfoDTO,
+    TelegramMessageDTO as TelegramMessageDTO,
 )
