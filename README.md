@@ -18,6 +18,7 @@
   ```bash
   ngrok http http://0.0.0.0:8000
   ```
+  ! ATTENTION: Visit opened ngrok url and click "Visit site" before you start sending requests (otherwise they won't get delivered)
 
 4. Run database migrations
   ```bash
