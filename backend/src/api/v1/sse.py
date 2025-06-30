@@ -1,0 +1,40 @@
+import asyncio
+from api.v1.utils import get_user_id_or_raise
+import logging
+from typing import Annotated
+from fastapi import Depends
+from sse_starlette import EventSourceResponse, ServerSentEvent
+
+events_queue = asyncio.Queue()
+
+
+class UserEventEmitter:
+    def __init__(self) -> None:
+        self._users: dict[int, asyncio.Queue] = {}
+
+    async def emit(self, to_user_id: int, data: dict):
+        queue = self._users.get(to_user_id)
+        if not queue:
+            logging.warning("User %s is not listening to server events", to_user_id)
+            return
+        await queue.put(data)
+
+    def create_stream(self, user_id: int):
+        self._users[user_id] = asyncio.Queue()
+
+        async def streamer():
+            while True:
+                data = await self._users[user_id].get()
+                yield ServerSentEvent(data=data)
+
+        return streamer
+
+
+event_emitter = UserEventEmitter()
+
+EventEmitterDep = Annotated[UserEventEmitter, Depends()]
+
+
+async def sse_endpoint(user_id: Annotated[int, Depends(get_user_id_or_raise)]):
+    streamer = event_emitter.create_stream(user_id)
+    return EventSourceResponse(streamer())

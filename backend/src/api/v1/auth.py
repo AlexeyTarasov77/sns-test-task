@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Response
 from api.v1.utils import AUTH_TOKEN_KEY, get_user_id_or_none, get_user_id_or_raise
 from core.ioc import Inject
 from services.auth import AuthService
