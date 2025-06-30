@@ -5,6 +5,7 @@ from dto import (
     TelegramChatDTO,
     TelegramChatInfoDTO,
     TelegramAccountInfoDTO,
+    TelegramMessageDTO,
 )
 from models import User, TelegramAccount
 from datetime import timedelta
@@ -49,7 +50,14 @@ class IJwtTokenProvider(ABC):
     def extract_payload(self, token: str) -> dict[str, Any]: ...
 
 
-class ITelegramClient(ABC):
+class ITelegramMessagesReader(ABC):
+    @abstractmethod
+    async def get_messages(
+        self, chat_id: int, limit: int, offset_id: int = 0
+    ) -> list[TelegramMessageDTO]: ...
+
+
+class ITelegramClient(ITelegramMessagesReader):
     def __init__(self, acc: TelegramAccount):
         self._creds = TgAccountCredentialsDTO(api_id=acc.api_id, api_hash=acc.api_hash)
         self._user_id = acc.user_id

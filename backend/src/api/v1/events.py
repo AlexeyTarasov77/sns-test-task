@@ -12,7 +12,7 @@ class UserEventEmitter:
     def __init__(self) -> None:
         self._users: dict[int, asyncio.Queue] = {}
 
-    async def emit(self, to_user_id: int, data: dict):
+    async def emit(self, to_user_id: int, data):  # data must be serializable object!
         queue = self._users.get(to_user_id)
         if not queue:
             logging.warning("User %s is not listening to server events", to_user_id)
@@ -25,6 +25,7 @@ class UserEventEmitter:
         async def streamer():
             while True:
                 data = await self._users[user_id].get()
+                print("SENDING EVENT FOR USER", user_id)
                 yield ServerSentEvent(data=data)
 
         return streamer

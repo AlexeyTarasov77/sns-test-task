@@ -7,7 +7,12 @@ from dto import (
     UserTelegramAccDTO,
     TelegramAccountInfoDTO,
 )
-from gateways.contracts import ITelegramAccountsRepo, ITelegramClientFactory, IUsersRepo
+from gateways.contracts import (
+    ITelegramAccountsRepo,
+    ITelegramClientFactory,
+    ITelegramMessagesReader,
+    IUsersRepo,
+)
 from gateways.exceptions import (
     StorageAlreadyExistsError,
     StorageNotFoundError,
@@ -107,16 +112,19 @@ class TelegramService:
         tg_client = self._tg_client_factory.new_client(tg_acc)
         return await tg_client.get_all_chats()
 
-    async def get_chat(self, user_id: int, chat_id: int) -> TelegramChatInfoDTO:
+    async def get_chat(
+        self, user_id: int, chat_id: int
+    ) -> tuple[TelegramChatInfoDTO, ITelegramMessagesReader]:
         try:
             tg_acc = await self._tg_accounts_repo.get_by_user_id(user_id)
         except StorageNotFoundError:
             raise TelegramAccNotConnectedError()
         tg_client = self._tg_client_factory.new_client(tg_acc)
         try:
-            return await tg_client.get_chat_by_id(chat_id)
+            chat = await tg_client.get_chat_by_id(chat_id)
         except StorageNotFoundError:
             raise ChatNotFoundError()
+        return chat, tg_client
 
     async def get_account_info(self, acc_id: int):
         try:

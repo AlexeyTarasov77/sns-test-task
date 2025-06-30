@@ -79,24 +79,16 @@ class TelethonTgProvider(ITelegramClient):
         photo_url = app_config.media_serve_url + "/" + filename
         return photo_url
 
-    async def get_chat_by_id(
-        self, chat_id: int, messages_limit: int = 10
-    ) -> TelegramChatInfoDTO:
+    async def get_messages(
+        self, chat_id: int, limit: int, offset_id: int = 0
+    ) -> list[TelegramMessageDTO]:
         async with self._client as client:
-            try:
-                chat: Chat | TgUser = await client.get_entity(chat_id)  # type: ignore
-            except ValueError as e:
-                raise StorageNotFoundError() from e
-            photo_url = None
-            if chat.photo:
-                filename = (
-                    self._get_chat_avatar_filename(chat.id)
-                    if isinstance(chat, Chat)
-                    else self._get_user_avatar_filename()
-                )
-                photo_url = await self._download_photo(chat, filename)
             chat_messages: list[TelegramMessageDTO] = []
-            async for msg in client.iter_messages(chat_id, messages_limit):
+            async for msg in client.iter_messages(
+                chat_id,
+                limit,
+                offset_id=offset_id,
+            ):
                 # skip non-text messages since it's not supported yet
                 if not msg.message:
                     continue
@@ -119,6 +111,25 @@ class TelethonTgProvider(ITelegramClient):
                         }
                     )
                 )
+            return chat_messages
+
+    async def get_chat_by_id(
+        self, chat_id: int, messages_limit: int = 10
+    ) -> TelegramChatInfoDTO:
+        async with self._client as client:
+            try:
+                chat: Chat | TgUser = await client.get_entity(chat_id)  # type: ignore
+            except ValueError as e:
+                raise StorageNotFoundError() from e
+            photo_url = None
+            if chat.photo:
+                filename = (
+                    self._get_chat_avatar_filename(chat.id)
+                    if isinstance(chat, Chat)
+                    else self._get_user_avatar_filename()
+                )
+                photo_url = await self._download_photo(chat, filename)
+            chat_messages = await self.get_messages(chat.id, messages_limit)
             return TelegramChatInfoDTO(
                 id=chat.id,
                 title=get_display_name(chat),
