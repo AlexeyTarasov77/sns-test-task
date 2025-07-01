@@ -13,11 +13,12 @@ export function useChat(chatId: number) {
         setIsLoading(true)
         const chat = await chatsService.getChat(chatId)
         setChat(chat)
+        window.scroll({ behavior: "smooth", top: document.body.scrollHeight })
       } finally {
         setIsLoading(false)
       }
     }
     f()
   }, [chatId])
-  return { isLoading, chat }
+  return { isLoading, chat, setChat }
 }

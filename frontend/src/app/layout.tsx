@@ -4,6 +4,7 @@ import "./globals.css";
 import { UIHeader } from "@/widgets/header";
 import { AuthProvider } from "@/entity/users/context/auth";
 import { UsersProvider } from "@/entity/users/context/user";
+import { ToastContainer } from "react-toastify";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,9 @@ export default function RootLayout({
           <AuthProvider>
             <UIHeader />
             {children}
+            <ToastContainer
+              position="bottom-right"
+            />
           </AuthProvider>
         </UsersProvider>
       </body>
