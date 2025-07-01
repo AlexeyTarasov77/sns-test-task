@@ -7,13 +7,17 @@ import { Loader } from "@/shared/ui/loader";
 import { renderError } from "@/shared/utils/errors";
 import { validationHelpers } from "@/shared/utils/validation";
 import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 export function SignInPage() {
   const { control, register, setError, handleSubmit, formState: { errors } } = useForm<ILoginForm>()
-  const { signIn, isLoading } = useAuthCtx()
+  const { signIn } = useAuthCtx()
+  const [isLoading, setIsLoading] = useState(false)
   const onSubmit = async (data: ILoginForm) => {
+    setIsLoading(true)
     const errMsg = await signIn(data)
+    setIsLoading(false)
     errMsg && setError("root", { message: errMsg })
   }
   if (isLoading) return <Loader />

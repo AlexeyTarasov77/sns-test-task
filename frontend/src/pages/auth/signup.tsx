@@ -8,14 +8,18 @@ import { renderError } from "@/shared/utils/errors";
 import { validationHelpers } from "@/shared/utils/validation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 export function SignUpPage() {
   const { control, register, setError, handleSubmit, formState: { errors } } = useForm<IRegisterForm>()
-  const { signUp, isLoading } = useAuthCtx()
+  const { signUp } = useAuthCtx()
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const onSubmit = async (data: IRegisterForm) => {
+    setIsLoading(true)
     const errMsg = await signUp(data)
+    setIsLoading(false)
     if (errMsg) {
       return setError("root", { message: errMsg })
     }

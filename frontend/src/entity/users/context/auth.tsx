@@ -51,24 +51,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const signIn = async (data: ILoginForm) => {
     try {
-      setIsLoading(true);
       await authService.login(data);
       setIsAuthenticated(true)
     } catch (err) {
       return getErrorMessage(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const signUp = async (data: IRegisterForm) => {
     try {
-      setIsLoading(true);
       await authService.register(data);
     } catch (err) {
       return getErrorMessage(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 

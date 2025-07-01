@@ -31,15 +31,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UsersProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <UsersProvider>
             <UIHeader />
             {children}
             <ToastContainer
               position="bottom-right"
             />
-          </AuthProvider>
-        </UsersProvider>
+          </UsersProvider>
+        </AuthProvider>
       </body>
     </html>
   );

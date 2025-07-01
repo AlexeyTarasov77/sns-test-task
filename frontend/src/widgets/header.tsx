@@ -29,7 +29,7 @@ function HeaderIcon() {
 
 export function UIHeader() {
   const router = useRouter()
-  const { user } = useUserCtx()
+  const { user, setUser } = useUserCtx()
   const { logout } = useAuthCtx()
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3">
@@ -40,8 +40,11 @@ export function UIHeader() {
         <h2 className="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">Social Network Notifications</h2>
       </div>
       <div className="flex gap-5 items-center">
-        <button onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url || user?.tg?.info.photo_url} /></button>
-        <UIButton className="max-w-32" onClick={() => logout()}>Logout</UIButton>
+        <button className="hover:cursor-pointer transition-all bg-none rounded-full hover:shadow-lg hover:shadow-blue-500" onClick={() => router.push("/profile")}><Avatar size={50} src={user?.avatar_url || user?.tg?.info.photo_url} /></button>
+        <UIButton className="max-w-32" onClick={() => {
+          logout()
+          setUser(null)
+        }}>Logout</UIButton>
       </div>
     </header>
   )

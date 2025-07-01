@@ -4,6 +4,7 @@ import {
   IUserExtended,
 } from "../types";
 import { usersService } from "../api/users";
+import { useAuthCtx } from "./auth";
 
 interface IUserCtx {
   user: IUserExtended | null;
@@ -20,6 +21,7 @@ export function useUserCtx(): IUserCtx {
 }
 
 export function UsersProvider({ children }: PropsWithChildren) {
+  const { isAuthenticated } = useAuthCtx()
   const [user, setUser] = useState<IUserExtended | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,8 +36,8 @@ export function UsersProvider({ children }: PropsWithChildren) {
       }
     };
 
-    fetchUser();
-  }, []);
+    isAuthenticated && fetchUser();
+  }, [isAuthenticated]);
 
 
   return (
