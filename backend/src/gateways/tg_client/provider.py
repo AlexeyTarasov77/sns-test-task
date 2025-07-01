@@ -55,7 +55,6 @@ class AuthOnlyTelethonClient(TelethonTelegramClient):
     async def __aexit__(self, *args):
         self._active_users -= 1
         if self._active_users == 0:
-            print("DISCONNECTING")
             await self.disconnect()  # type: ignore
 
 
