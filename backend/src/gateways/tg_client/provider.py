@@ -32,7 +32,11 @@ from models import TelegramAccount
 
 
 class AuthOnlyTelethonClient(TelethonTelegramClient):
-    """Overrides __aenter__ original method to avoid interactive login behaviour"""
+    """
+    Wrapper around standart telethon's TelegramClient.
+    Overrides __aenter__ original method to avoid interactive login behaviour.
+    Supports concurrent usage by disconnecting only when amount of active clients equals to 0
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

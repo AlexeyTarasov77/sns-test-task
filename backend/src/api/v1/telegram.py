@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 from fastapi import APIRouter, Depends, status, BackgroundTasks
 from gateways.exceptions import StorageNotFoundError
@@ -8,7 +9,7 @@ from dto import (
     TelegramChatDTO,
 )
 from api.v1.utils import get_user_id_or_raise
-from api.v1.events import event_emitter
+from api.v1.events import Event, event_emitter
 from core.ioc import Inject
 from gateways.contracts import IKeyValueStorage
 from services.telegram import TelegramService
@@ -33,39 +34,44 @@ async def get_chat(
     background_tasks: BackgroundTasks,
     kv_storage: Annotated[IKeyValueStorage, Inject(IKeyValueStorage)],
 ):
-    # TODO: There is no sense of emitting to specific user, it would be better to make broadcasting
-    # since multiple clients can listen to messages of specific chat by event name
     messages_chunk_size = 50
     chat, message_reader = await service.get_chat(user_id, id, messages_chunk_size)
-    message_stream_started_key = f"message_stream_started_{user_id}_{chat.id}"
+    # user_id must be included in key, because if stream is already running for same chat
+    # but client started listening later - he won't receive all messages.
+    # So for every new user - new stream should be started
+    is_stream_running_key = f"message_stream_running_{user_id}_{chat.id}"
     event_name = f"chat_{chat.id}_messages"
 
     async def send_messages_stream():
         try:
-            print("START STREAMING MESSAGES")
             chunk_generator = message_reader.yield_all_messages(
                 chat.id, messages_chunk_size, chat.messages[-1].id
             )
             async for chunk in chunk_generator:
-                print("EMITTING NEW CHUNK", len(chunk), chunk[:3])
+                logging.info("emitting new messages chunk. Size: %d", len(chunk))
                 emitted = await event_emitter.emit(
                     user_id,
-                    [msg.model_dump(mode="json") for msg in chunk],
-                    event_name,
+                    Event([msg.model_dump(mode="json") for msg in chunk], event_name),
                 )
-                print("IS EMITTED", emitted)
                 if not emitted:
+                    logging.warning(
+                        "Stopped emitting messages because they can't be delivered"
+                    )
                     break
             # send empty list to indicate end of message stream
-            await event_emitter.emit(user_id, [], event_name)
+            await event_emitter.emit(user_id, Event([], event_name))
         finally:
-            await kv_storage.delete(message_stream_started_key)
+            await kv_storage.delete(is_stream_running_key)
 
+    # don't stream messages if not clients are connected
+    if event_emitter.clients_count == 0:
+        logging.warning("No clients to stream messages for")
+        return chat
     # avoid streaming messages twice to the same client
     try:
-        await kv_storage.get(message_stream_started_key)
+        await kv_storage.get(is_stream_running_key)
     except StorageNotFoundError:
-        await kv_storage.set(message_stream_started_key, True)
+        await kv_storage.set(is_stream_running_key, True)
         background_tasks.add_task(send_messages_stream)
     return chat
 
