@@ -6,11 +6,13 @@ import punq
 from core.config import app_config
 from gateways.contracts import (
     IJwtTokenProvider,
+    IKeyValueStorage,
     IPasswordHasher,
     ITelegramAccountsRepo,
     ITelegramClientFactory,
     IUsersRepo,
 )
+from gateways.storage import InMemoryStorage
 from gateways.tg_client.factory import TelethonTgClientFactory
 from gateways.security.tokens import JwtTokenProvider
 from gateways.sqlalchemy_gateway.repositories import UsersRepo, TelegramAccountsRepo
@@ -29,10 +31,11 @@ def init_container() -> punq.Container:
     container.register(IUsersRepo, UsersRepo)
     container.register(ITelegramAccountsRepo, TelegramAccountsRepo)
     container.register(IPasswordHasher, BcryptHasher)
+    container.register(IKeyValueStorage, InMemoryStorage, scope=punq.Scope.singleton)
     container.register(
         IJwtTokenProvider, JwtTokenProvider, secret_key=app_config.jwt_secret
     )
-    container.register(ITelegramClientFactory, TelethonTgClientFactory)
+    container.register(ITelegramClientFactory, instance=TelethonTgClientFactory())
     container.register(
         AuthService, AuthService, auth_token_ttl=app_config.auth_token_ttl
     )

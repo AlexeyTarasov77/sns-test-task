@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
 from typing import Any
 from dto import (
     TgAccountCredentialsDTO,
@@ -52,9 +53,9 @@ class IJwtTokenProvider(ABC):
 
 class ITelegramMessagesReader(ABC):
     @abstractmethod
-    async def get_messages(
-        self, chat_id: int, limit: int, offset_id: int = 0
-    ) -> list[TelegramMessageDTO]: ...
+    def yield_all_messages(
+        self, chat_id: int, chunk_size: int = 50, initial_offset_id: int = 0
+    ) -> AsyncGenerator[list[TelegramMessageDTO], None]: ...
 
 
 class ITelegramClient(ITelegramMessagesReader):
@@ -78,7 +79,9 @@ class ITelegramClient(ITelegramMessagesReader):
     async def get_all_chats(self) -> list[TelegramChatDTO]: ...
 
     @abstractmethod
-    async def get_chat_by_id(self, chat_id: int) -> TelegramChatInfoDTO: ...
+    async def get_chat_by_id(
+        self, chat_id: int, messages_limit: int = 10
+    ) -> TelegramChatInfoDTO: ...
 
     @abstractmethod
     async def get_me(self) -> TelegramAccountInfoDTO: ...
@@ -86,6 +89,17 @@ class ITelegramClient(ITelegramMessagesReader):
     async def delete_session(self) -> None: ...
 
 
-class ITelegramClientFactory:
+class ITelegramClientFactory(ABC):
     @abstractmethod
     def new_client(self, acc: TelegramAccount) -> ITelegramClient: ...
+
+
+class IKeyValueStorage(ABC):
+    @abstractmethod
+    async def get(self, key: str) -> Any: ...
+
+    @abstractmethod
+    async def set(self, key: str, value: Any) -> None: ...
+
+    @abstractmethod
+    async def delete(self, key: str) -> None: ...

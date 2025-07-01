@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 import os
 import asyncio
 from telethon.hints import EntityLike
@@ -31,21 +32,31 @@ from models import TelegramAccount
 
 
 class AuthOnlyTelethonClient(TelethonTelegramClient):
-    user: TgUser
     """Overrides __aenter__ original method to avoid interactive login behaviour"""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._active_users = 0
+        self.auth_user: TgUser | None = None
+
     async def __aenter__(self):
+        self._active_users += 1
         if not self.is_connected():
             await self.connect()
 
-        me = await self.get_me()
-        if me is None:
-            raise ValueError("Authentication failed. Unable to use client")
-        self.user = me  # type: ignore
+        # cache results to avoid calling every time
+        if not self.auth_user:
+            me = await self.get_me()
+            if me is None:
+                raise ValueError("Authentication failed. Unable to use client")
+            self.auth_user = me  # type: ignore
         return self
 
     async def __aexit__(self, *args):
-        await self.disconnect()  # type: ignore
+        self._active_users -= 1
+        if self._active_users == 0:
+            print("DISCONNECTING")
+            await self.disconnect()  # type: ignore
 
 
 class TelethonTgProvider(ITelegramClient):
@@ -79,39 +90,51 @@ class TelethonTgProvider(ITelegramClient):
         photo_url = app_config.media_serve_url + "/" + filename
         return photo_url
 
-    async def get_messages(
+    async def yield_all_messages(
+        self, chat_id: int, chunk_size: int = 50, initial_offset_id: int = 0
+    ) -> AsyncGenerator[list[TelegramMessageDTO], None]:
+        offset_id = initial_offset_id
+        async with self._client:
+            while True:
+                messages = await self._get_messages(chat_id, chunk_size, offset_id)
+                if not messages:
+                    break
+                offset_id = messages[-1].id
+                yield messages
+
+    async def _get_messages(
         self, chat_id: int, limit: int, offset_id: int = 0
     ) -> list[TelegramMessageDTO]:
-        async with self._client as client:
-            chat_messages: list[TelegramMessageDTO] = []
-            async for msg in client.iter_messages(
-                chat_id,
-                limit,
-                offset_id=offset_id,
-            ):
-                # skip non-text messages since it's not supported yet
-                if not msg.message:
-                    continue
-                photo_url = None
-                if msg.sender.photo:
-                    filename = self._get_user_avatar_filename(msg.sender.id)
-                    photo_url = await self._download_photo(msg.sender, filename)
-                chat_messages.append(
-                    TelegramMessageDTO.model_validate(
-                        {
-                            **msg.to_dict(),
-                            "reply_to_msg_id": msg.reply_to.reply_to_msg_id
-                            if msg.reply_to
-                            else None,
-                            "sender": {
-                                **msg.sender.to_dict(),
-                                "display_name": get_display_name(msg.sender),
-                                "photo_url": photo_url,
-                            },
-                        }
-                    )
+        """WARNING: This method should be called only after client is connected"""
+        chat_messages: list[TelegramMessageDTO] = []
+        async for msg in self._client.iter_messages(
+            chat_id,
+            limit,
+            offset_id=offset_id,
+        ):
+            # skip non-text messages since it's not supported yet
+            if not msg.message:
+                continue
+            photo_url = None
+            if msg.sender.photo:
+                filename = self._get_user_avatar_filename(msg.sender.id)
+                photo_url = await self._download_photo(msg.sender, filename)
+            chat_messages.append(
+                TelegramMessageDTO.model_validate(
+                    {
+                        **msg.to_dict(),
+                        "reply_to_msg_id": msg.reply_to.reply_to_msg_id
+                        if msg.reply_to
+                        else None,
+                        "sender": {
+                            **msg.sender.to_dict(),
+                            "display_name": get_display_name(msg.sender),
+                            "photo_url": photo_url,
+                        },
+                    }
                 )
-            return chat_messages
+            )
+        return chat_messages
 
     async def get_chat_by_id(
         self, chat_id: int, messages_limit: int = 10
@@ -129,7 +152,7 @@ class TelethonTgProvider(ITelegramClient):
                     else self._get_user_avatar_filename()
                 )
                 photo_url = await self._download_photo(chat, filename)
-            chat_messages = await self.get_messages(chat.id, messages_limit)
+            chat_messages = await self._get_messages(chat.id, messages_limit)
             return TelegramChatInfoDTO(
                 id=chat.id,
                 title=get_display_name(chat),
@@ -206,13 +229,14 @@ class TelethonTgProvider(ITelegramClient):
     async def get_me(self) -> TelegramAccountInfoDTO:
         async with self._client as client:
             photo_url = None
-            if client.user.photo:
+            assert client.auth_user is not None
+            if client.auth_user.photo:
                 filename = self._get_user_avatar_filename()
-                photo_url = await self._download_photo(client.user, filename)
+                photo_url = await self._download_photo(client.auth_user, filename)
             return TelegramAccountInfoDTO.model_validate(
                 {
-                    **client.user.to_dict(),
-                    "display_name": get_display_name(client.user),
+                    **client.auth_user.to_dict(),
+                    "display_name": get_display_name(client.auth_user),
                     "photo_url": photo_url,
                 }
             )

@@ -113,7 +113,7 @@ class TelegramService:
         return await tg_client.get_all_chats()
 
     async def get_chat(
-        self, user_id: int, chat_id: int
+        self, user_id: int, chat_id: int, messages_limit: int = 10
     ) -> tuple[TelegramChatInfoDTO, ITelegramMessagesReader]:
         try:
             tg_acc = await self._tg_accounts_repo.get_by_user_id(user_id)
@@ -121,7 +121,7 @@ class TelegramService:
             raise TelegramAccNotConnectedError()
         tg_client = self._tg_client_factory.new_client(tg_acc)
         try:
-            chat = await tg_client.get_chat_by_id(chat_id)
+            chat = await tg_client.get_chat_by_id(chat_id, messages_limit)
         except StorageNotFoundError:
             raise ChatNotFoundError()
         return chat, tg_client
