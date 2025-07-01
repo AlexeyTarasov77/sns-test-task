@@ -38,6 +38,7 @@ async def get_chat(
     messages_chunk_size = 50
     chat, message_reader = await service.get_chat(user_id, id, messages_chunk_size)
     message_stream_started_key = f"message_stream_started_{user_id}_{chat.id}"
+    event_name = f"chat_{chat.id}_messages"
 
     async def send_messages_stream():
         try:
@@ -50,13 +51,13 @@ async def get_chat(
                 emitted = await event_emitter.emit(
                     user_id,
                     [msg.model_dump(mode="json") for msg in chunk],
-                    f"chat_{chat.id}_messages",
+                    event_name,
                 )
                 print("IS EMITTED", emitted)
                 if not emitted:
                     break
             # send empty list to indicate end of message stream
-            await event_emitter.emit(user_id, [])
+            await event_emitter.emit(user_id, [], event_name)
         finally:
             await kv_storage.delete(message_stream_started_key)
 
